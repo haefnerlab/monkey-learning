@@ -17,8 +17,8 @@ function [pop] = Compute_fPrime_Single_Pop( pop )
 % note that this is the same as using our helper function 
 %   nanfndim(@mean, counts, 2)
 % but is built-in and slightly faster
-meanA = nanmean(pop.spikeCounts_choiceA, 2);
-meanB = nanmean(pop.spikeCounts_choiceB, 2);
+meanA = nanmean(pop.spikeCounts_stimA, 2);
+meanB = nanmean(pop.spikeCounts_stimB, 2);
 
 pop.fprime = (meanA - meanB)';
 

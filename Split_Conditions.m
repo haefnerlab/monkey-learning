@@ -17,8 +17,16 @@ stimA = pop.condVec > 0;
 stimB = pop.condVec < 0;
 stim0 = pop.condVec == 0;
 
+% some cases, sign(condVec) does not match correctChoice... if so, swap
+% what A and B mean
+if ~all(sign(pop.condVec(~stim0)) == pop.correctChoice(~stim0))
+    temp = stimA;
+    stimA = stimB;
+    stimB = temp;
+end
+
 choiceA = stim0 & pop.realChoice > 0;
-choiceB = stim0 == 0 & pop.realChoice < 0;
+choiceB = stim0 & pop.realChoice < 0;
 
 pop.spikeCounts_stimA = pop.spikeCounts(:, stimA);
 pop.spikeCounts_stimB = pop.spikeCounts(:, stimB);
