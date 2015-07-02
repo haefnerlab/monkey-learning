@@ -23,9 +23,12 @@ osz = sz;
 osz(dim) = 1;
 output = zeros(osz);
 
+% ind2sub uses varargout, which we will capture in this cell array
+idxs_cell = cell(1,ndims(output));
+
 for oi=1:numel(output)
-    out_sub_cell = {ind2sub(osz, oi)};
-    x_idx = sub2ind(sz, out_sub_cell{:});
+    [idxs_cell{:}] = ind2sub(osz, oi);
+    x_idx = sub2ind(sz, idxs_cell{:});
     end_x_idx = x_idx + stride * (size_along_dim - 1);
 
     X_vec = X(x_idx:stride:end_x_idx);
