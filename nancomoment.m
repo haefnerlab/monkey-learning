@@ -1,4 +1,4 @@
-function [ output, counts ] = nancomoment( X, order )
+function [ output, counts, indices ] = nancomoment( X, order, symmetries )
 %NANCOMOMENT get the order-th co-moment of X, ignoring NaN values, where each
 % column of X is a variable and each row an observation
 %
@@ -14,6 +14,8 @@ function [ output, counts ] = nancomoment( X, order )
 
 if order <= 0, error('order of moments must be greater than 0'); end
 
+if nargin < 3, symmetries=false; end
+
 if order == 1
     output = nanmean(X, 1); % built-in function is faster for means
 else
@@ -21,15 +23,16 @@ else
     nddots = zeros(osize);
     counts = zeros(osize);
     
+    indices = 1:numel(nddots);
+    if symmetries, indices = find(ndtriu(size(nddots))); end
+    
     % subtract mean from X
     X = X - repmat(nanmean(X), size(X,1), 1);
     
     % ind2sub uses varargout, which we will capture in this cell array
     nd_idxs_cell = cell(1,order);
     
-    % TODO use symmetries; generalize 'upper triangular' to 'upper
-    % N-dimensional pyramid' of the ndarray output
-    for i=1:numel(nddots)
+    for i=indices
         [nd_idxs_cell{:}] = ind2sub(osize, i);
         idxs = cell2mat(nd_idxs_cell);
         
