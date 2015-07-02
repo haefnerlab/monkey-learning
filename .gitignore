@@ -1,0 +1,6 @@
+.DS_Store
+*.pdf
+data/jbe
+data/lem
+*.mat
+*.m~
