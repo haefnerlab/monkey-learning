@@ -38,7 +38,8 @@ for pi=1:length(populations)
 end
 hold off;
 
-[R, P] = corrcoef(all_fprimes, all_ctdms);
+valid_correlations = ~isnan(all_ctdms);
+[R, P] = corrcoef(all_fprimes(valid_correlations), all_ctdms(valid_correlations));
 
 axis square;
 title(sprintf('Moment %d :: Correlation = %.4f :: p=%.2e', 1, R(2), P(2)));
