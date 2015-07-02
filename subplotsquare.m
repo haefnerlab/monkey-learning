@@ -5,7 +5,7 @@ function [ handle ] = subplotsquare( total, p )
 m = ceil(sqrt(total));
 n = ceil(total / m);
 
-handle = subplot(m, n, p);
+handle = subplot(n, m, p);
 
 end
 
