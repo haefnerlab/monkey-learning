@@ -1,5 +1,5 @@
-function [ populations ] = Load_Data( monkey_name )
-%LOAD_DATA Load all .mat files for given monkey+condition into single
+function [ populations ] = Load_Task_Data( monkey_name )
+%LOAD_TASK_DATA Load all .mat files for given monkey+condition into single
 %struct array
 
 datapath = fullfile('data', monkey_name, 'task');

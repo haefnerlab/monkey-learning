@@ -3,7 +3,7 @@
 %% Load and preprocess
 if ~exist('populations', 'var')
     fprintf('loading data... ');
-    populations = Load_Data('lem');
+    populations = Load_Task_Data('jbe');
     fprintf('done\n');
 end
 populations = Split_Conditions( populations );
@@ -12,6 +12,8 @@ populations = Compute_fPrime( populations );
 verbose = true;
 
 nmoments = 2;
+
+min_pairs = 25;
 
 %% compare first moment (diff in means)
 
@@ -64,7 +66,7 @@ for moment = 2:nmoments
         if verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(populations), length(pop.cellnos)); end;
         % get f'f'f'... up to moment times
         [stimulus_moments, ~, indices] = nancomoment(pop.fprime, moment, true);
-        choice_triggered_delta_means = nancomoment(pop.spikeCounts_stim0', moment, true);
+        choice_triggered_delta_means = nancomoment(pop.spikeCounts_stim0', moment, true, min_pairs);
         
         scatter(stimulus_moments(indices), choice_triggered_delta_means(indices), 5, colors(pi,:));
         

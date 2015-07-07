@@ -1,4 +1,4 @@
-function [ output, counts, indices ] = nancomoment( X, order, symmetries )
+function [ output, counts, indices ] = nancomoment( X, order, symmetries, minimum_count )
 %NANCOMOMENT get the order-th co-moment of X, ignoring NaN values, where each
 % column of X is a variable and each row an observation
 %
@@ -15,6 +15,7 @@ function [ output, counts, indices ] = nancomoment( X, order, symmetries )
 if order <= 0, error('order of moments must be greater than 0'); end
 
 if nargin < 3, symmetries=false; end
+if nargin < 4, minimum_count=1; end
 
 if order == 1
     output = nanmean(X, 1); % built-in function is faster for means
@@ -48,7 +49,8 @@ else
         nddots(i) = sum(prod(vecs(all_not_nan_observations, :), 2), 1);
     end
     
-    nddots(counts == 0) = NaN;
+    indices(counts(indices) < minimum_count) = [];
+    nddots(counts < minimum_count) = NaN;
     output = nddots ./ counts;
 end
 
