@@ -18,4 +18,6 @@ end
 
 val = r_0 + r_max .* exp(k .* cos((theta*pi/180 - theta_pref)).^2);
 
+val(val < eps) = eps;
+
 end
