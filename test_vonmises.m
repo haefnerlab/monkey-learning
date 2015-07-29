@@ -6,7 +6,7 @@ f = figure();
 
 os = linspace(0,180,201);
 
-for pi=2:length(pops)
+for pi=1:length(pops)
     pop = pops(pi);
     
     % condVecLabel is a cell array of strings identifying contents of each
@@ -19,16 +19,24 @@ for pi=2:length(pops)
         
         if numel(counts) == numel(orientations)
         
-            [params, curve] = fitVonMises(orientations, counts);
+            [best, curve, best_map, worst, worst_map] = fitVonMises(orientations, counts);
+            disp(best);
+            disp(best_map);
+            disp(worst);
+            disp(worst_map);
 
             % scatter plot with tuning curve overlayed
             scatter(orientations, counts);
             hold on;
-            plot(os, curve(os));
+            plot(os, vonMises(os, best), 'LineWidth', 2);
+            plot(os, vonMises(os, worst), 'LineStyle', '--');
+            axis([0,180,0,max(counts)+10]);
             hold off;
             title(sprintf('Population %d Neuron %d', pi, ni));
 
             pause; 
+        else
+            warning('#counts was not same as #orientations');
         end
     end
     fprintf('end of population %d\n', pi);
