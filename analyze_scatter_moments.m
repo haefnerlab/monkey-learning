@@ -14,6 +14,7 @@ verbose = true;
 nmoments = 2;
 
 min_pairs = 25;
+% TODO "Adrian also excludes pairs where the average spike rate is less than 7" - Ralf
 
 %% compare first moment (diff in means)
 
