@@ -10,11 +10,9 @@ populations = Split_Conditions( populations );
 populations = Compute_fPrime( populations );
 
 verbose = true;
-
 nmoments = 2;
-
-min_pairs = 25;
-% TODO "Adrian also excludes pairs where the average spike rate is less than 7" - Ralf
+min_pairs = 25;   % min # n-tuples of not-NaN trials for the moment to be considered valid
+min_rates = 10; % min avg # spikes in the n-tuple for a trial to be counted
 
 %% compare first moment (diff in means)
 
@@ -67,7 +65,7 @@ for moment = 2:nmoments
         if verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(populations), length(pop.cellnos)); end;
         % get f'f'f'... up to moment times
         [stimulus_moments, ~, indices] = nancomoment(pop.fprime, moment, true);
-        choice_triggered_delta_means = nancomoment(pop.spikeCounts_stim0', moment, true, min_pairs);
+        choice_triggered_delta_means = nancomoment(pop.spikeCounts_stim0', moment, true, min_pairs, min_rates);
         
         scatter(stimulus_moments(indices), choice_triggered_delta_means(indices), 5, colors(pi,:));
         
@@ -86,6 +84,5 @@ for moment = 2:nmoments
     xlabel('tuning curve f'' statistics');
     ylabel('zero-stimulus noise statistics');
 end
-    
     
 clearvars -except populations verbose;
