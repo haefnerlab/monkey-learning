@@ -16,7 +16,11 @@ else % multiple args in
     theta_pref = varargin{4};
 end
 
-val = r_0 + r_max .* exp(k .* cos((theta*pi/180 - theta_pref)).^2);
+% theta and theta_pref are in degrees
+theta = theta*pi/180;
+theta_pref = theta_pref*pi/180;
+
+val = r_0 + r_max .* exp(k .* cos(theta - theta_pref).^2);
 
 val(val < eps) = eps;
 
