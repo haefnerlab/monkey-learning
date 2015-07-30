@@ -1,3 +1,18 @@
+%% TEST Deriv
+
+params = [2.3071    6.5792    1.8156   22.4661];
+vals = linspace(0,180,201);
+vm = vonMises(vals, params);
+vmp = vonMisesDeriv(vals, params);
+vmd = diff(vm) / (vals(2)-vals(1));
+
+plot(vals, vmp);
+hold on;
+plot(vals(1:end-1), vmd, '.');
+hold off;
+legend('analytic', 'diff-approximation');
+
+%% TEST FIT
 clearvars; close all;
 
 pops = Load_Fixation_Data('jbe');
