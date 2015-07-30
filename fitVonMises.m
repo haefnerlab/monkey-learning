@@ -1,5 +1,5 @@
-function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, n_init )
-%FITVONMISES MAP fit a von Mises tuning curve (see vonMises()) to
+function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, use_map, n_init )
+%FITVONMISES ML or MAP fit a von Mises tuning curve (see vonMises()) to
 % (orientation,count) data. Assumed poisson variability and some
 % mostly-arbitrary priors on parameters
 %
@@ -15,6 +15,10 @@ function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises
 %            counts
 
 if nargin < 3
+    use_map = true;
+end
+
+if nargin < 4
     n_init = 20;
 end
 
@@ -51,11 +55,17 @@ log_p_r_max = @(r_max) -normlike([r_max_mean, r_max_dev], r_max);
 log_p_k     = @(k)     -normlike([k_mean, k_dev], k);
 log_p_th    = @(th)    log(1.0/180);
 
-fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeCounts, params)) ...
-    + log_p_r_0(params(1)) ...
-    + log_p_r_max(params(2)) ...
-    + log_p_k(params(3)) ...
-    + log_p_th(params(4));
+if use_map
+    fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeCounts, params)) ...
+        + log_p_r_0(params(1)) ...
+        + log_p_r_max(params(2)) ...
+        + log_p_k(params(3)) ...
+        + log_p_th(params(4));
+else
+    % Max Likelihood version is MAP sans priors, and otherwise everything
+    % is identical (still sample initial values n_init times, etc)
+    fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeCounts, params));
+end
 
 fn_to_minimize = @(params) -fn_to_maximize(params);
 
