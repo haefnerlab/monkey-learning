@@ -16,6 +16,7 @@ legend('analytic', 'diff-approximation');
 clearvars; close all;
 
 pops = Load_Fixation_Data('jbe');
+popst = Load_Task_Data('jbe');
 
 f = figure();
 
@@ -26,7 +27,7 @@ for pi=1:length(pops)
     
     % condVecLabel is a cell array of strings identifying contents of each
     %   condVec column. Find which one is 'orientation'.
-    orientation_condition = find(strcmp('orientation', pop.condVecLabel));
+    orientation_condition = strcmp('orientation', pop.condVecLabel);
     
     orientations = pop.condVec(:,orientation_condition);
     for ni=1:length(pop.cellnos)
@@ -45,6 +46,14 @@ for pi=1:length(pops)
             hold on;
             plot(os, vonMises(os, best), 'LineWidth', 2);
             plot(os, vonMises(os, worst), 'LineStyle', '--');
+            % plot where we thing preferred orientation is (black)
+            plot([best(4) best(4)], [0, max(counts)], '--k')
+            % neurons already have some estimated tuning from A.B. et al
+            % (green)
+            et = popst(pi).tuning(ni);
+            if ~isnan(et)
+                plot([et et], [0, max(counts)], '--g')
+            end
             axis([0,180,0,max(counts)+10]);
             hold off;
             title(sprintf('Population %d Neuron %d', pi, ni));
