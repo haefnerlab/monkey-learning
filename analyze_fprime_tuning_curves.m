@@ -101,25 +101,32 @@ ylabel('choice-triggered diff means')
 
 offsets = -90:5:90;
 
-all_correlations = zeros(popsize, length(offsets));
+all_correlations = zeros(1,length(offsets));
 for o_idx=1:length(offsets)
     offset = offsets(o_idx);
+    all_fprimes = zeros(n_neurons,1);
+    all_ctdms = zeros(n_neurons,1);
+    start_idx = 1;
     for p_idx=1:n_pops
         pop = pops_task(p_idx);
         popsize = length(pop.cellnos);
         choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
         fprime_at_offset = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.tuning_vm_curves{n_idx}, pop.Orientation + offset), 1:popsize);
-
-        R = corrcoef(fprime_at_offset, choice_triggered_delta_means);
-        all_correlations(p_idx, o_idx) = R(2);
+    
+        end_idx = start_idx + popsize - 1;
+        all_fprimes(start_idx:end_idx) = fprime_at_offset;
+        all_ctdms(start_idx:end_idx) = choice_triggered_delta_means;
+        start_idx = end_idx + 1;
     end
+    R = corrcoef(all_fprimes, all_ctdms);
+    all_correlations(o_idx) = R(2);
 end
 
 means = mean(all_correlations, 1);
 stds = std(all_correlations, 1);
 
 subplot(1,3,3);
-errorbar(offsets, means, stds);
+plot(offsets, all_correlations);
 title(sprintf('Corr. f'' of tuning curve with choice-triggered means\nas a function of distance-from-trial-center'));
 xlabel('offset from trial alignment');
 ylabel('correlation of tuning curve f'' at \theta+offset with choice-triggered means');
