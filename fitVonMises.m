@@ -77,7 +77,7 @@ optim_params = zeros(n_init, 4);
 parfor run=1:n_init
     params = [init_r_0(), init_r_max(), init_k(), init_th()];
     optim = fminsearch(fn_to_minimize, params, ...
-        optimset('MaxFunEvals', 4000, 'MaxIter', 2000));
+        optimset('MaxFunEvals', 4000, 'MaxIter', 2000, 'Display', 'off'));
 
     scores(run) = fn_to_maximize(optim);
     optim_params(run,:) = optim;
