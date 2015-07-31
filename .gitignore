@@ -4,3 +4,4 @@ data/jbe
 data/lem
 *.mat
 *.m~
+*.fig
