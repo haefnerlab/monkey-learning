@@ -72,30 +72,21 @@ fn_to_minimize = @(params) -fn_to_maximize(params);
 % posterior is non-convex, so we sample initialization n_init times and
 % keep track of which had the best MAP score
 % (and for the sake of teaching and debugging, also the worst one)
-best_map = -inf;
-worst_map = inf;
-for run=1:n_init
-
+scores = zeros(n_init,1);
+optim_params = zeros(n_init, 4);
+parfor run=1:n_init
     params = [init_r_0(), init_r_max(), init_k(), init_th()];
     optim = fminsearch(fn_to_minimize, params, ...
         optimset('MaxFunEvals', 4000, 'MaxIter', 2000));
 
-    score = fn_to_maximize(optim);
-    if ~isreal(score)
-        fprintf('wtf?\n');
-    end
-    if score > best_map
-        best_map = score;
-        best_params = optim;
-        fprintf('best updated to %f\n', best_map);
-    end
-    
-    if score < worst_map
-        worst_map = score;
-        worst_params = optim;
-        fprintf('worst updated to %f\n', worst_map);
-    end
+    scores(run) = fn_to_maximize(optim);
+    optim_params(run,:) = optim;
 end
+
+[best_map,  best_idx]  = max(scores);
+[worst_map, worst_idx] = min(scores);
+best_params  = optim_params(best_idx,  :);
+worst_params = optim_params(worst_idx, :);
 
 % we were minimizing negative log likelihood. max likelihood (and the
 % corresponding value) is negative of the minimized fn at the solution
