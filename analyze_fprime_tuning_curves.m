@@ -4,16 +4,27 @@
 % monkey = 'jbe';
 monkey = 'lem';
 
+savefile = fullfile('data', monkey, 'preprocessed.mat');
+
 if ~exist('pops_task', 'var') || ~exist('pops_fix', 'var')
-    fprintf('loading data... ');
-    pops_task = Load_Task_Data(monkey);
-    pops_fix = Load_Fixation_Data(monkey);
-    [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
-    fprintf('done\n');
+    if ~exist(savefile, 'file')
+        fprintf('loading data... ');
+        pops_task = Load_Task_Data(monkey);
+        pops_fix = Load_Fixation_Data(monkey);
+        [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
+        fprintf('done\n');
+    else
+        savedata = load(savefile);
+        pops_task = savedata.pops_task;
+        pops_fix = savedata.pops_fix;
+    end
 end
 pops_task = Split_Conditions( pops_task );
 pops_task = Compute_fPrime( pops_task );
 pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
+
+save(savefile, 'pops_task', 'pops_fix');
+
 n_pops = length(pops_task);
 n_neurons = sum(arrayfun(@(p) length(p.cellnos), pops_task));
 
