@@ -20,7 +20,7 @@ if ~exist('pops_task', 'var') || ~exist('pops_fix', 'var')
     end
 end
 pops_task = Split_Conditions( pops_task );
-pops_task = Compute_fPrime( pops_task );
+pops_task = Compute_fPrime_stimulus_means( pops_task );
 pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
 
 save(savefile, 'pops_task', 'pops_fix');
@@ -58,7 +58,7 @@ for p_idx=1:n_pops
     popsize = length(pop.cellnos);
     choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
 %     fprime_at_task = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.tuning_vm_curves{n_idx}, pop.Orientation), 1:popsize);
-    fprime_at_task = pop.fprime;
+    fprime_at_task = pop.fprime_stimulus_mean;
     scatter(fprime_at_task, choice_triggered_delta_means, 5, popcolors(p_idx,:));
     
     end_idx = start_idx + popsize - 1;

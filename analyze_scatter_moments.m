@@ -7,7 +7,7 @@ if ~exist('populations', 'var')
     fprintf('done\n');
 end
 populations = Split_Conditions( populations );
-populations = Compute_fPrime( populations );
+populations = Compute_fPrime_stimulus_means( populations );
 
 verbose = true;
 nmoments = 2;
@@ -21,7 +21,7 @@ colors = hsv(length(populations));
 subplotsquare(nmoments, 1);
 
 % concatenation of all fprimes and CT?Ms for getting correlations
-n_all_fprimes = sum(cellfun(@length, {populations.fprime}));
+n_all_fprimes = sum(cellfun(@length, {populations.fprime_stimulus_mean}));
 all_fprimes = zeros(1,n_all_fprimes);
 all_ctdms   = zeros(1,n_all_fprimes);
 i = 1;
@@ -30,10 +30,10 @@ hold on;
 for pi=1:length(populations)
     pop = populations(pi);
     choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
-    scatter(pop.fprime, choice_triggered_delta_means, 5, colors(pi,:));
+    scatter(pop.fprime_stimulus_mean, choice_triggered_delta_means, 5, colors(pi,:));
     
-    next_i = i+length(pop.fprime);
-    all_fprimes(i:next_i-1) = pop.fprime;
+    next_i = i+length(pop.fprime_stimulus_mean);
+    all_fprimes(i:next_i-1) = pop.fprime_stimulus_mean;
     all_ctdms(i:next_i-1) = choice_triggered_delta_means;
     i = next_i;
 end
@@ -52,7 +52,7 @@ for moment = 2:nmoments
     subplotsquare(nmoments, moment);
 
     % concatenation of all fprimes and CT?Ms for getting correlations
-    n_all_fprimes = sum(cellfun(@(fp) sum(ndtriu(length(fp) * ones(1,moment))), {populations.fprime}));
+    n_all_fprimes = sum(cellfun(@(fp) sum(ndtriu(length(fp) * ones(1,moment))), {populations.fprime_stimulus_mean}));
     all_fprimes = zeros(1,n_all_fprimes);
     all_ctdms   = zeros(1,n_all_fprimes);
     i = 1;
@@ -64,7 +64,7 @@ for moment = 2:nmoments
         pop = populations(pi);
         if verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(populations), length(pop.cellnos)); end;
         % get f'f'f'... up to moment times
-        [stimulus_moments, ~, indices] = nancomoment(pop.fprime, moment, true);
+        [stimulus_moments, ~, indices] = nancomoment(pop.fprime_stimulus_mean, moment, true);
         choice_triggered_delta_means = nancomoment(pop.spikeCounts_stim0', moment, true, min_pairs, min_rates);
         
         scatter(stimulus_moments(indices), choice_triggered_delta_means(indices), 5, colors(pi,:));
