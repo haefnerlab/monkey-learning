@@ -20,7 +20,7 @@ end
 theta = theta*pi/180;
 theta_pref = theta_pref*pi/180;
 
-val = r_0 + r_max .* exp(k .* cos(theta - theta_pref).^2);
+val = r_0 + r_max .* exp(k .* cos(2*(theta - theta_pref)));
 
 val(val < eps) = eps;
 
