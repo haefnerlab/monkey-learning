@@ -70,38 +70,29 @@ fits = fits(1:i,:);
 
 binmethod = 'auto';
 
-subplot(2,4,1);
+subplot(2,3,1);
 [n,e] = histcounts(fits(votes==1,1), 'BinMethod', binmethod);
 bar(e(1:end-1) + diff(e)/2,n,'b')
 title('distribution of r_0 GOOD');
-subplot(2,4,5);
+subplot(2,3,4);
 [n,e] = histcounts(fits(votes==0,1), 'BinMethod', binmethod);
 bar(e(1:end-1) + diff(e)/2,n,'r');
 title('distribution of r_0 BAD');
 
-subplot(2,4,2);
+subplot(2,3,2);
 [n,e] = histcounts(fits(votes==1,2), 'BinMethod', binmethod);
 bar(e(1:end-1) + diff(e)/2, n, 'b');
 title('distribution of r_m_a_x GOOD');
-subplot(2,4,6);
+subplot(2,3,5);
 [n,e] = histcounts(fits(votes==0,2), 'BinMethod', binmethod);
 bar(e(1:end-1) + diff(e)/2, n, 'r');
 title('distribution of r_m_a_x BAD');
 
-subplot(2,4,3);
+subplot(2,3,3);
 [n,e] = histcounts(fits(votes==1,3), 'BinMethod', binmethod);
 bar(e(1:end-1) + diff(e)/2, n, 'b');
 title('distribution of k GOOD');
-subplot(2,4,7);
+subplot(2,3,6);
 [n,e] = histcounts(fits(votes==0,3), 'BinMethod', binmethod);
 bar(e(1:end-1) + diff(e)/2, n, 'r');
 title('distribution of k BAD');
-
-subplot(2,4,4);
-[n,e] = histcounts(fits(votes==1,4), 'BinMethod', binmethod);
-bar(e(1:end-1) + diff(e)/2, n, 'b');
-title('distribution of th GOOD');
-subplot(2,4,8);
-[n,e] = histcounts(fits(votes==0,4), 'BinMethod', binmethod);
-bar(e(1:end-1) + diff(e)/2, n, 'r');
-title('distribution of th BAD');
