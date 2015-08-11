@@ -6,7 +6,7 @@ function [ populations_task ] = Compute_fPrime_bestfit(populations_task, populat
 % possible
 
 if ~isfield(populations_task, 'tuning_vm_curves')
-    populations_task = Fit_Population_TuningCurves(populations_task, populations_fixation);
+    populations_task = TuningCurves.Fit_Population_TuningCurves(populations_task, populations_fixation);
 end
 
 populations_task = arrayfun(@Compute_fPrime_bestfit_Single_Pop, populations_task);
