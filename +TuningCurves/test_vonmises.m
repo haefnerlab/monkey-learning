@@ -2,8 +2,8 @@
 
 params = [2.3071    6.5792    1.8156   22.4661];
 vals = linspace(0,180,201);
-vm = vonMises(vals, params);
-vmp = vonMisesDeriv(vals, params);
+vm = TuningCurves.vonMises(vals, params);
+vmp = TuningCurves.vonMisesDeriv(vals, params);
 vmd = diff(vm) / (vals(2)-vals(1));
 
 plot(vals, vmp);
@@ -35,7 +35,7 @@ for pi=1:length(pops)
         
         if numel(counts) == numel(orientations)
         
-            [best, curve, best_map, worst, worst_map] = fitVonMises(orientations, counts);
+            [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, counts);
             disp(best);
             disp(best_map);
             disp(worst);
@@ -44,8 +44,8 @@ for pi=1:length(pops)
             % scatter plot with tuning curve overlayed
             scatter(orientations, counts);
             hold on;
-            plot(os, vonMises(os, best), 'LineWidth', 2);
-            plot(os, vonMises(os, worst), 'LineStyle', '--');
+            plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
+            plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
             % plot where we thing preferred orientation is (black)
             plot([best(4) best(4)], [0, max(counts)], '--k')
             % neurons already have some estimated tuning from A.B. et al

@@ -38,12 +38,12 @@ for i=1:nvotes
 
     % Get a single randomly-initialized ML Fit (we want overfitting here
     % occasionally)
-    [best, curve, best_map, worst, worst_map] = fitVonMises(orientations, counts, false, 1);
+    [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, counts, false, 1);
 
     % scatter plot with tuning curve overlayed
     scatter(orientations, counts);
     hold on;
-    plot(os, vonMises(os, best), 'LineWidth', 2);
+    plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
     axis([0,180,0,max(counts)+10]);
     hold off;
     title(sprintf('Population %d Neuron %d', idxs(1), idxs(2)));

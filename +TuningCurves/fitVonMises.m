@@ -78,6 +78,9 @@ parfor run=1:n_init
     params = [init_r_0(), init_r_max(), init_k(), init_th()];
     optim = fminsearch(fn_to_minimize, params, ...
         optimset('MaxFunEvals', 4000, 'MaxIter', 2000, 'Display', 'off'));
+    
+    % theta makes sense in [0,180)
+    optim(4) = mod(optim(4), 180); % note matlab's mod works as we want for negative numbers too
 
     scores(run) = fn_to_maximize(optim);
     optim_params(run,:) = optim;
@@ -90,7 +93,7 @@ worst_params = optim_params(worst_idx, :);
 
 % we were minimizing negative log likelihood. max likelihood (and the
 % corresponding value) is negative of the minimized fn at the solution
-curve = @(o) vonMises(o, best_params);
+curve = @(o) TuningCurves.vonMises(o, best_params);
 
 end
 
@@ -98,7 +101,7 @@ function ll = log_likelihood(o, c, params)
 % poisson-likelihood of seeing (orientation o, count c) pair under given
 % parameterization of vonMises
 
-dist_mean = vonMises(o, params);
+dist_mean = TuningCurves.vonMises(o, params);
 
 % Poisson = lambda^k e^-lambda / k!
 % so, log Poisson = k log(lambda) - lambda - log(k!)
