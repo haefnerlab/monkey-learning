@@ -5,3 +5,4 @@ data/lem
 *.mat
 *.m~
 *.fig
+*.svg
