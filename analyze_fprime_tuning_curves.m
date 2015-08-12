@@ -1,8 +1,9 @@
 % top-level script for monkey data analysis
 
 %% Load and preprocess
-% monkey = 'jbe';
-monkey = 'lem';
+if ~exist('monkey', 'var')
+    monkey = 'lem';
+end
 
 savefile = fullfile('data', monkey, 'preprocessed.mat');
 

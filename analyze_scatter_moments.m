@@ -1,9 +1,12 @@
 % top-level script for monkey data analysis
 
 %% Load and preprocess
+if ~exist('monkey', 'var')
+    monkey = 'lem';
+end
 if ~exist('populations', 'var')
     fprintf('loading data... ');
-    populations = Load_Task_Data('jbe');
+    populations = Load_Task_Data(monkey);
     fprintf('done\n');
 end
 populations = Split_Conditions( populations );
