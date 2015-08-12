@@ -50,6 +50,7 @@ TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
 
 f1 = figure();
 % LEFT subplot
+if verbose, fprintf('Left plot: f'' task vs CT moment\n'); end
 all_fprimes = zeros(n_neurons,1);
 all_ctdms = zeros(n_neurons,1);
 start_idx = 1;
@@ -76,6 +77,7 @@ xlabel('f'' aligned to task')
 ylabel('choice-triggered diff means')
 
 % MIDDLE subplot
+if verbose, fprintf('Middle plot: f'' ortho vs CT moment\n'); end
 all_fprimes = zeros(n_neurons,1);
 all_ctdms = zeros(n_neurons,1);
 start_idx = 1;
@@ -101,12 +103,15 @@ xlabel('f'' aligned 45 degrees off task')
 ylabel('choice-triggered diff means')
 
 % RIGHT subplot
+if verbose, fprintf('Right plot: correlation as fn of offset\n'); end
 
 offsets = -90:5:90;
 
 all_correlations = zeros(1,length(offsets));
-parfor o_idx=1:length(offsets)
-    offset = offsets(o_idx)
+confidence_intervals = zeros(2, length(offsets));
+for o_idx=1:length(offsets)
+    if verbose, fprintf('\t%d/%d\n', o_idx, length(offsets)); end
+    offset = offsets(o_idx);
     all_fprimes = zeros(n_neurons,1);
     all_ctdms = zeros(n_neurons,1);
     start_idx = 1;
@@ -121,15 +126,22 @@ parfor o_idx=1:length(offsets)
         all_ctdms(start_idx:end_idx) = choice_triggered_delta_means;
         start_idx = end_idx + 1;
     end
-    R = corrcoef(all_fprimes, all_ctdms);
-    all_correlations(o_idx) = R(2);
+    % bootstrap confidence intervals, N=1000
+    nboot=1000;
+    
+    % we occasionally get NaN in only some portion of the tuning curve
+    %  when neurons aren't well-behaved; drop those values.
+    valid_indices = ~isnan(all_fprimes) & ~isnan(all_ctdms);
+    all_fprimes = all_fprimes(valid_indices);
+    all_ctdms = all_ctdms(valid_indices);
+        
+    all_correlations(o_idx) = corr(all_fprimes, all_ctdms);
+    confidence_intervals(:,o_idx) = bootci(nboot, {@corr, all_fprimes, all_ctdms}, ...
+        'Options', statset('UseParallel', true));
 end
 
-means = mean(all_correlations, 1);
-stds = std(all_correlations, 1);
-
 subplot(1,3,3);
-plot(offsets, all_correlations);
+errorbar(offsets, all_correlations, confidence_intervals(1,:), confidence_intervals(2,:));
 title(sprintf('Corr. f'' of tuning curve with choice-triggered means\nas a function of distance-from-trial-center'));
 xlabel('offset from trial alignment');
 ylabel('correlation of tuning curve f'' at \theta+offset with choice-triggered means');
