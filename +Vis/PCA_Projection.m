@@ -1,9 +1,10 @@
-function [ eigenvectors, fig, handles ] = PCA_Projection( data, classes, colors, sizes, fig )
+function [ eigenvectors, mean_vec, covariance, fig, handles ] = PCA_Projection( data, classes, colors, sizes, fig )
 %PCA_PROJECTION Create a 2D projection of data, colored by class labels.
 %  'data' must have variables along columns and observations along rows
 %  'classes' are Nx1 labels {1,2,...,C}, which together with 'colors'
 %            determines how to color each point
 %  'colors' are Cx3 RGB colors to use for each class
+%  'sizes' are Cx1 scatter-plot sizes for each class
 % 
 % Creates a new figure if one not given
 
@@ -18,7 +19,6 @@ end
 if nargin < 4
     sizes = 20*ones(length(unique(classes)), 1);
 end
-
 if nargin < 5
     fig = figure();
 else
@@ -45,14 +45,20 @@ covariance(isnan(covariance)) = 0;
 % largest eigenvectors of the covariance matrix
 [eigenvectors,~] = eigs(covariance, 2);
 
+% for the sake of consistency across runs, our standard will be a positive
+% first component of each
+if eigenvectors(1,1) < 0
+    eigenvectors(:,1) = eigenvectors(:,1) * -1;
+end
+if eigenvectors(1,2) < 0
+    eigenvectors(:,2) = eigenvectors(:,2) * -1;
+end
+
 % Before projecting, we sample from sliced-covariances to fill in 'missing'
 % (i.e. NaN) data.
 % NOTE that by using covariance, we only preserve mean and covariance of
 % the samples; no higher-order statistics are employed.
-data_augmented = zeros(size(data));
-for i=1:size(data,1)
-    data_augmented(i,:) = resample_mvn(data_centered(i,:), covariance);
-end
+data_augmented = Vis.resample_mvn(data_centered, covariance);
 
 % project data: NxP * Px2 --> Nx2
 data_projected = data_augmented * eigenvectors;
@@ -63,28 +69,5 @@ for c=size(colors,1):-1:1
     handles(c) = scatter(class_data(:,1), class_data(:,2), sizes(c), colors(c,:), 'filled');
 end
 hold off;
-
-end
-
-function [ row ] = resample_mvn(row, covariance)
-% resample_mvn fills in NaN columns sampled from the covariance sliced by
-% the non-nan values in row
-% (assuming data centered with mean zero already)
-
-if ~any(isnan(row)), return; end
-
-observed = ~isnan(row);
-
-cov_11 = covariance(~observed, ~observed);
-cov_12 = covariance(~observed,  observed);
-cov_21 = covariance( observed, ~observed);
-cov_22 = covariance( observed,  observed);
-
-% see https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Conditional_distributions
-mu_slice = cov_12 * (cov_22 \ row(observed)');
-cov_slice = cov_11 - cov_12 * (cov_22 \ cov_21);
-
-% sample from sliced distribution
-row(~observed) = mvnrnd(mu_slice, cov_slice);
 
 end

@@ -8,11 +8,7 @@ f = figure();
 
 for frame=1:nsample
     Vis.PCA_2neuron( pop, f );
-    if frame == 1
-        ax = axis();
-    else
-        axis(ax);
-    end
+    axis([-200,200,-200,200]);
     mov(frame) = getframe;
 end
 
