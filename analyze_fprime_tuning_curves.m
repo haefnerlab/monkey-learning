@@ -36,21 +36,27 @@ pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix );
 save(savefile, 'pops_task', 'pops_fix');
 
 n_pops = length(pops_task);
-n_neurons = sum(arrayfun(@(p) length(p.cellnos), pops_task));
 popcolors = hsv(n_pops);
 
-% anonymous function to get f' from a tuning curve at a given stimulus
+% lambda function: get f' from a tuning curve at a given stimulus
 TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
 
+% lambda function: number of non-duplicate moment data
+Num_Unique_Moments = @(variables, moment) length(find(ndtriu(variables * ones(1,moment))));
+
+% calculate total number of data points we will get
+n_momentdata = sum(arrayfun(@(p) Num_Unique_Moments(length(p.cellnos), params.moment), pops_task));
+
 % prepare scatter plot colors (neurons colored by population)
-neuroncolors = zeros(n_neurons,3);
+neuroncolors = zeros(n_momentdata,3);
 start_idx = 1;
 for p_idx=1:n_pops
     pop = pops_task(p_idx);
     popsize = length(pop.cellnos); 
+    popmoments = Num_Unique_Moments(popsize, params.moment);
     
-    end_idx = start_idx + popsize - 1;
-    neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popsize,1);
+    end_idx = start_idx + popmoments - 1;
+    neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popmoments,1);
     start_idx = end_idx + 1;
 end
 
@@ -58,7 +64,7 @@ end
 
 if params.verbose, fprintf('computing ctdms..\n'); end
 
-all_ctdms = zeros(n_neurons,1);
+all_ctdms = zeros(n_momentdata, 1);
 
 % loop over populations to fill in (flattened) all_ctdms array, where now
 % each entry corresponds to a neuron
@@ -67,10 +73,20 @@ for p_idx=1:n_pops
     pop = pops_task(p_idx);
     popsize = length(pop.cellnos);
     
-    choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
+    % by 'first moment' we really mean (choiceA mean) - (choiceB mean)
+    % whereas 2nd+higher moments look at entire _stim0 distribution
+    % together
+    if params.moment == 1
+        all_indices = 1:popsize;
+        choice_triggered_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
+    else
+        [choice_triggered_moment, ~, ~, all_indices] = ...
+            nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
+        % note that anywhere min_pairs isn't satisfied, ctm is NaN
+    end
     
-    end_idx = start_idx + popsize - 1;
-    all_ctdms(start_idx:end_idx) = choice_triggered_delta_means;
+    end_idx = start_idx + length(all_indices) - 1;
+    all_ctdms(start_idx:end_idx) = choice_triggered_moment(all_indices);
     start_idx = end_idx + 1;
 end
 
@@ -79,9 +95,10 @@ end
 if params.verbose, fprintf('computing fprimes..\n'); end
 
 % TODO: make # offsets controllable in params
+% no matter what, make sure 0 and 45 are included (used in plots I and II)
 offsets = unique(horzcat(-90:5:90, [0,45]));
 
-all_fprimes = zeros(n_neurons, length(offsets)); % each column corresponds to one task-offset
+all_fprimes = zeros(n_momentdata, length(offsets)); % each column corresponds to one task-offset
 for o_idx=1:length(offsets)
     if params.verbose, fprintf('\t%d/%d\n', o_idx, length(offsets)); end
     offset = offsets(o_idx);
@@ -92,9 +109,17 @@ for o_idx=1:length(offsets)
         popsize = length(pop.cellnos);
 
         fprime_at_offset = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.(params.fprime_curve){n_idx}, pop.Orientation + offset), 1:popsize);
+        
+        % see comments in analogous part of previous section (~line 76)
+        if params.moment == 1
+            all_indices = 1:popsize;
+            fprime_moment = fprime_at_offset;
+        else
+            [fprime_moment, ~, ~, all_indices] = nancomoment(fprime_at_offset, params.moment, true);
+        end
     
-        end_idx = start_idx + popsize - 1;
-        all_fprimes(start_idx:end_idx, o_idx) = fprime_at_offset;
+        end_idx = start_idx + length(all_indices) - 1;
+        all_fprimes(start_idx:end_idx, o_idx) = fprime_moment(all_indices);
         start_idx = end_idx + 1;
     end
 end
@@ -124,7 +149,7 @@ o_idx = offsets==0;
 
 figure();
 scatter(all_fprimes(:, o_idx), all_ctdms, 15, neuroncolors);
-title(sprintf('Corr. choice-triggered means vs task f''\nr=%.3f +/- %.3e', all_correlations(o_idx), diff(confidence_intervals(:,o_idx))));
+title(sprintf('Corr. choice-triggered moment vs task f''\nr=%.3f +/- %.3e', all_correlations(o_idx), diff(confidence_intervals(:,o_idx))));
 xlabel('f'' aligned to task')
 ylabel('choice-triggered diff means')
 
@@ -135,7 +160,7 @@ o_idx = offsets==45;
 
 figure();
 scatter(all_fprimes(:, o_idx), all_ctdms, 15, neuroncolors);
-title(sprintf('Corr. choice-triggered means vs off-task f''\nr=%.3f +/- %.3e', all_correlations(o_idx), diff(confidence_intervals(:,o_idx))));
+title(sprintf('Corr. choice-triggered moment vs off-task f''\nr=%.3f +/- %.3e', all_correlations(o_idx), diff(confidence_intervals(:,o_idx))));
 xlabel('f'' aligned 45 degrees off task')
 ylabel('choice-triggered diff means')
 
@@ -144,8 +169,8 @@ if params.verbose, fprintf('Right plot: correlation as fn of offset\n'); end
 
 figure();
 errorbar(offsets, all_correlations, confidence_intervals(1,:), confidence_intervals(2,:));
-title(sprintf('Corr. f'' of tuning curve with choice-triggered means\nas a function of distance-from-trial-center'));
+title(sprintf('Corr. f'' of tuning curve with choice-triggered moment\nas a function of distance-from-trial-center'));
 xlabel('offset from trial alignment');
-ylabel('correlation of tuning curve f'' at \theta+offset with choice-triggered means');
+ylabel('correlation of tuning curve f'' at \theta+offset with choice-triggered moment');
 
 end
