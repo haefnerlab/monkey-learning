@@ -11,15 +11,30 @@
 %
 % This script compares the two.
 
-clearvars -except pops_task pops_fix; close all;
+clearvars -except pops_task pops_fix params; close all;
 
-% monkey = 'jbe';
-monkey = 'lem';
+if ~exist('params', 'var')
+    params = New_Parameters('monkey', 'lem');
+end
 
 if ~exist('pops_task', 'var') || ~exist('pops_fix', 'var')
-    pops_fix = Load_Fixation_Data(monkey);
-    pops_task = Load_Task_Data(monkey);
-    [pops_task, pops_fix] = Match_Corresponding_Populations(pops_task, pops_fix);
+    savefile = fullfile('data', params.monkey, 'preprocessed.mat');
+
+    % fitting tuning curves is time-consuming; precomputed results are put in
+    % a 'preprocessed.mat' file
+    if ~exist(savefile, 'file')
+        fprintf('loading data... ');
+        pops_task = Load_Task_Data(params.monkey);
+        pops_fix = Load_Fixation_Data(params.monkey);
+        [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
+        fprintf('done\n');
+    else
+        fprintf('loading preprocessed data... ');
+        savedata = load(savefile);
+        pops_task = savedata.pops_task;
+        pops_fix = savedata.pops_fix;
+        fprintf('done\n');
+    end
 end
 
 pops_task = Split_Conditions( pops_task );
@@ -36,25 +51,12 @@ all_fprimes_bestfit = horzcat(all_fprimes_bestfit{:});
 all_fprimes_fixation_means = arrayfun(@(p) p.fprime_fixation_means, pops_task, 'UniformOutput', false);
 all_fprimes_fixation_means = horzcat(all_fprimes_fixation_means{:});
 
-[~,~,BigAx] = plotmatrix([all_fprimes_stimulus_means', all_fprimes_bestfit', all_fprimes_fixation_means']);
+[~,Ax,BigAx] = plotmatrix([all_fprimes_stimulus_means', all_fprimes_bestfit', all_fprimes_fixation_means']);
+set(get(BigAx,'title'), 'string', 'scatter comparison of three f'' methods');
+set(get(Ax(1,1), 'ylabel'), 'string', 'Stimulus-driven');
+set(get(Ax(2,1), 'ylabel'), 'string', '(high contrast) von Mises fit');
+set(get(Ax(3,1), 'ylabel'), 'string', '(high contrast) means');
+set(get(Ax(3,1), 'xlabel'), 'string', 'Stimulus-driven');
+set(get(Ax(3,2), 'xlabel'), 'string', '(high contrast) von Mises fit');
+set(get(Ax(3,3), 'xlabel'), 'string', '(high contrast) means');
 
-labels = {'Stimulus-means', 'best-fit von Mises', 'Fixation (linear interpolated)'};
-ylabels = arrayfun(@(i) strjust(sprintf('%40s', labels{i}), 'center'), 3:-1:1, 'UniformOutput', false);
-xlabels = arrayfun(@(i) strjust(sprintf('%40s', labels{i}), 'center'), 1:3,    'UniformOutput', false);
-set(get(BigAx,'ylabel'),'string', [ylabels{:}]);
-set(get(BigAx,'xlabel'),'string', [xlabels{:}]);
-set(get(BigAx,'title'), 'string', 'scatter comparison of three f'' methods');  
-
-% compare the three f' methods
-% f = figure();
-% y=x line
-% plot([-40,40],[-40,40], '--', 'Color', 0.8*[1,1,1]);
-% for p_idx=1:length(pops_task)
-%     hold on;
-%     scatter(pops_task(p_idx).fprime_stimulus_mean, pops_task(p_idx).fprime_bestfit, 8, colors(p_idx, :));
-%     hold off;
-% end
-% xlabel('f'' (from stimulus response means)')
-% ylabel('f'' (from fit tuning curve in fixation task)');
-% title('Sanity-Check: f'' measured 2 different ways');
-% axis('equal');
