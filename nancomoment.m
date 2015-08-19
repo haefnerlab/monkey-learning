@@ -4,6 +4,8 @@ function [ output, counts, indices ] = nancomoment( X, order, symmetries, minimu
 %
 % output is an ndarray with 'order' dimensions, each of size #variables.
 %
+% [output, counts, indices] = nancomoment( X, order, [symmetries, [minimum_count, [minimum_value]]] )
+%
 % output[i,j,k,...] is the expected (i.e. mean) value of
 %   (X(:,i)-u(i))*(X(:,j)-u(j))*(X(:,k)-u(k))*...
 % where 'u' is the mean of each variable, and we discard any (i,j,k,...)
@@ -41,9 +43,8 @@ else
         
         vecs = Xzero(:,idxs);
         
-        % find which indices are not NaN for all <order>-many vecs across
-        % observations. prod() is used like a logical AND here
-        all_valid_observations = logical(prod(~isnan(vecs), 2));
+        % find which indices are not NaN for all vecs across observations
+        all_valid_observations = all(~isnan(vecs), 2);
         
         % also only keep those where the mean (across vecs) is >
         % minimum_value
