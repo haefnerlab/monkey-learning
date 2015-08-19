@@ -1,4 +1,4 @@
-function [ output, counts, indices ] = nancomoment( X, order, symmetries, minimum_count, minimum_value )
+function [ output, counts, indices, all_indices ] = nancomoment( X, order, symmetries, minimum_count, minimum_value )
 %NANCOMOMENT get the order-th co-moment of X, ignoring NaN values, where each
 % column of X is a variable and each row an observation
 %
@@ -14,6 +14,14 @@ function [ output, counts, indices ] = nancomoment( X, order, symmetries, minimu
 %
 % counts[i,j,k,...] is the number of non-nan pairs found. Where counts is 
 % zero, output is NaN
+%
+% all_indices is a vector of indices into the output where a value was
+%   computed. If 'symmetries' is true, this includes at most one of each
+%   unique combination of variables (IE find(triu(output)) in the 2d case)
+%
+% indices is all_indices but with any 'invalid' outputs removed. By 'valid'
+%   we mean that it is not NaN, and the minimum_count and minimum_value
+%   requirements are satisfied
 
 if order <= 0, error('order of moments must be greater than 0'); end
 
@@ -28,8 +36,8 @@ else
     nddots = zeros(osize);
     counts = zeros(osize);
     
-    indices = 1:numel(nddots);
-    if symmetries, indices = find(ndtriu(size(nddots))); end
+    all_indices = 1:numel(nddots);
+    if symmetries, all_indices = find(ndtriu(size(nddots))); end
     
     % subtract mean from X
     Xzero = X - repmat(nanmean(X), size(X,1), 1);
@@ -37,7 +45,7 @@ else
     % ind2sub uses varargout, which we will capture in this cell array
     nd_idxs_cell = cell(1,order);
     
-    for i=indices
+    for i=all_indices
         [nd_idxs_cell{:}] = ind2sub(osize, i);
         idxs = cell2mat(nd_idxs_cell);
         
@@ -59,6 +67,7 @@ else
         nddots(i) = sum(prod(vecs(all_valid_observations, :), 2), 1);
     end
     
+    indices = all_indices;
     indices(counts(indices) < minimum_count) = [];
     nddots(counts < minimum_count) = NaN;
     output = nddots ./ counts;
