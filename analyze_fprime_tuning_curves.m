@@ -42,7 +42,7 @@ popcolors = hsv(n_pops);
 TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
 
 % lambda function: number of non-duplicate moment data
-Num_Unique_Moments = @(variables, moment) length(find(ndtriu(variables * ones(1,moment))));
+Num_Unique_Moments = @(variables, moment) length(find(Util.ndtriu(variables * ones(1,moment))));
 
 % calculate total number of data points we will get
 n_momentdata = sum(arrayfun(@(p) Num_Unique_Moments(length(p.cellnos), params.moment), pops_task));
@@ -81,7 +81,7 @@ for p_idx=1:n_pops
         choice_triggered_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
     else
         [choice_triggered_moment, ~, ~, all_indices] = ...
-            nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
+            Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
         % note that anywhere min_pairs isn't satisfied, ctm is NaN
     end
     
@@ -115,7 +115,7 @@ for o_idx=1:length(offsets)
             all_indices = 1:popsize;
             fprime_moment = fprime_at_offset;
         else
-            [fprime_moment, ~, ~, all_indices] = nancomoment(fprime_at_offset, params.moment, true);
+            [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
         end
     
         end_idx = start_idx + length(all_indices) - 1;

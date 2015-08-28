@@ -20,7 +20,7 @@ colors = hsv(length(populations));
 %% compare first moment (diff in means)
 
 figure();
-subplotsquare(params.moment, 1);
+Util.subplotsquare(params.moment, 1);
 
 % concatenation of all fprimes and CT?Ms for getting correlations
 n_all_fprimes = sum(cellfun(@length, {populations.fprime_stimulus_mean}));
@@ -51,10 +51,10 @@ ylabel('zero-stimulus noise statistics');
 
 %% Compare higher-order moments
 for moment = 2:params.moment
-    subplotsquare(params.moment, moment);
+    Util.subplotsquare(params.moment, moment);
 
     % concatenation of all fprimes and CT?Ms for getting correlations
-    n_all_fprimes = sum(cellfun(@(fp) sum(ndtriu(length(fp) * ones(1,moment))), {populations.fprime_stimulus_mean}));
+    n_all_fprimes = sum(cellfun(@(fp) sum(Util.ndtriu(length(fp) * ones(1,moment))), {populations.fprime_stimulus_mean}));
     all_fprimes = zeros(1,n_all_fprimes);
     all_ctdms   = zeros(1,n_all_fprimes);
     i = 1;
@@ -66,8 +66,8 @@ for moment = 2:params.moment
         pop = populations(pi);
         if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(populations), length(pop.cellnos)); end;
         % get f'f'f'... up to moment times
-        [stimulus_moments, ~, indices] = nancomoment(pop.fprime_stimulus_mean, moment, true);
-        choice_triggered_delta_means = nancomoment(pop.spikeCounts_stim0', moment, true, params.min_pairs, params.min_rates);
+        [stimulus_moments, ~, indices] = Util.nancomoment(pop.fprime_stimulus_mean, moment, true);
+        choice_triggered_delta_means = Util.nancomoment(pop.spikeCounts_stim0', moment, true, params.min_pairs, params.min_rates);
         
         scatter(stimulus_moments(indices), choice_triggered_delta_means(indices), 5, colors(pi,:));
         

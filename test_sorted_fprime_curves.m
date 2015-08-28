@@ -1,7 +1,7 @@
 
 figure();
 for p_idx = 1:length(pops_task)
-    subplotsquare(length(pops_task), p_idx);
+    Util.subplotsquare(length(pops_task), p_idx);
     
     [orientations,idxs] = sort(pops_task(p_idx).tuning_vm);
     

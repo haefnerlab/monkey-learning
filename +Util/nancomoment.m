@@ -37,7 +37,7 @@ else
     counts = zeros(osize);
     
     all_indices = 1:numel(nddots);
-    if symmetries, all_indices = find(ndtriu(size(nddots))); end
+    if symmetries, all_indices = find(Util.ndtriu(size(nddots))); end
     
     % subtract mean from X
     Xzero = X - repmat(nanmean(X), size(X,1), 1);
