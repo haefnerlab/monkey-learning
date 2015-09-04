@@ -1,4 +1,4 @@
-function analyze_scatter_moments( params )
+function analyze_scatter_moments( params, pops_task )
 %ANALYZE_SCATTER_MOMENTS compares statistical moments of f' tuning curves
 % and 'choice-triggered' distributions (when there is no stimulus)
 %
@@ -9,13 +9,29 @@ function analyze_scatter_moments( params )
 
 %% Load and preprocess
 
-fprintf('loading data... ');
-populations = Load_Task_Data(params.monkey);
-fprintf('done\n');
+if nargin < 2 || ~strcmp(pops_task(1).Header.monkey, params.monkey)
+    savefile = fullfile('data', params.monkey, 'preprocessed.mat');
 
-populations = Split_Conditions( populations );
-populations = Compute_fPrime_stimulus_means( populations );
-colors = hsv(length(populations));
+    % fitting tuning curves is time-consuming; precomputed results are put in
+    % a 'preprocessed.mat' file
+    if ~exist(savefile, 'file')
+        fprintf('loading data... ');
+        pops_task = Load_Task_Data(params.monkey);
+        fprintf('done\n');
+    else
+        fprintf('loading preprocessed data... ');
+        savedata = load(savefile);
+        pops_task = savedata.pops_task;
+        fprintf('done\n');
+    end
+
+    pops_task = Split_Conditions( pops_task );
+    pops_task = Compute_fPrime_stimulus_means( pops_task );
+
+    save(savefile, 'pops_task', 'pops_fix');
+end
+
+colors = hsv(length(pops_task));
 
 %% compare first moment (diff in means)
 
@@ -23,14 +39,14 @@ figure();
 Util.subplotsquare(params.moment, 1);
 
 % concatenation of all fprimes and CT?Ms for getting correlations
-n_all_fprimes = sum(cellfun(@length, {populations.fprime_stimulus_mean}));
+n_all_fprimes = sum(cellfun(@length, {pops_task.fprime_stimulus_mean}));
 all_fprimes = zeros(1,n_all_fprimes);
 all_ctdms   = zeros(1,n_all_fprimes);
 i = 1;
 
 hold on;
-for pi=1:length(populations)
-    pop = populations(pi);
+for pi=1:length(pops_task)
+    pop = pops_task(pi);
     choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
     scatter(pop.fprime_stimulus_mean, choice_triggered_delta_means, 5, colors(pi,:));
     
@@ -54,7 +70,7 @@ for moment = 2:params.moment
     Util.subplotsquare(params.moment, moment);
 
     % concatenation of all fprimes and CT?Ms for getting correlations
-    n_all_fprimes = sum(cellfun(@(fp) sum(Util.ndtriu(length(fp) * ones(1,moment))), {populations.fprime_stimulus_mean}));
+    n_all_fprimes = sum(cellfun(@(fp) sum(Util.ndtriu(length(fp) * ones(1,moment))), {pops_task.fprime_stimulus_mean}));
     all_fprimes = zeros(1,n_all_fprimes);
     all_ctdms   = zeros(1,n_all_fprimes);
     i = 1;
@@ -62,9 +78,9 @@ for moment = 2:params.moment
     if params.verbose, fprintf('Calculating moment %d\n', moment); end
 
     hold on;
-    for pi=1:length(populations)
-        pop = populations(pi);
-        if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(populations), length(pop.cellnos)); end;
+    for pi=1:length(pops_task)
+        pop = pops_task(pi);
+        if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(pops_task), length(pop.cellnos)); end;
         % get f'f'f'... up to moment times
         [stimulus_moments, ~, indices] = Util.nancomoment(pop.fprime_stimulus_mean, moment, true);
         choice_triggered_delta_means = Util.nancomoment(pop.spikeCounts_stim0', moment, true, params.min_pairs, params.min_rates);
