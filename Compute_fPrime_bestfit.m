@@ -15,10 +15,7 @@ end
 
 function [pop] = Compute_fPrime_bestfit_Single_Pop( pop )
 
-stimA = pop.Orientation;
-stimB = stimA + 90; % always orthogonal gratings
-
-pop.fprime_bestfit = cellfun(@(curve) curve(stimA) - curve(stimB), pop.tuning_vm_curves);
+pop.fprime_bestfit = cellfun(@(curve) curve(pop.stimA) - curve(pop.stimB), pop.tuning_vm_curves);
 
 end
 
