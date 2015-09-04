@@ -64,9 +64,9 @@ end
 
 if params.verbose, fprintf('computing ctdms..\n'); end
 
-all_ctdms = zeros(n_momentdata, 1);
+all_0stim = zeros(n_momentdata, 1);
 
-% loop over populations to fill in (flattened) all_ctdms array, where now
+% loop over populations to fill in (flattened) all_0stim array, where now
 % each entry corresponds to a neuron
 start_idx = 1;
 for p_idx=1:n_pops
@@ -78,15 +78,15 @@ for p_idx=1:n_pops
     % together
     if params.moment == 1
         all_indices = 1:popsize;
-        choice_triggered_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
+        zero_stim_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
     else
-        [choice_triggered_moment, ~, ~, all_indices] = ...
+        [zero_stim_moment, ~, ~, all_indices] = ...
             Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
         % note that anywhere min_pairs isn't satisfied, ctm is NaN
     end
     
     end_idx = start_idx + length(all_indices) - 1;
-    all_ctdms(start_idx:end_idx) = choice_triggered_moment(all_indices);
+    all_0stim(start_idx:end_idx) = zero_stim_moment(all_indices);
     start_idx = end_idx + 1;
 end
 
@@ -134,11 +134,11 @@ for o_idx=1:length(offsets)
     if params.verbose, fprintf('\t%d/%d\n', o_idx, length(offsets)); end
     
     fprimes_this_offset = all_fprimes(:, o_idx);
-    valid_indices = ~isnan(fprimes_this_offset) & ~isnan(all_ctdms);
+    valid_indices = ~isnan(fprimes_this_offset) & ~isnan(all_0stim);
         
-    all_correlations(o_idx) = corr(fprimes_this_offset(valid_indices), all_ctdms(valid_indices));
+    all_correlations(o_idx) = corr(fprimes_this_offset(valid_indices), all_0stim(valid_indices));
     confidence_intervals(:,o_idx) = bootci(params.bootstrap, ...
-        {@corr, fprimes_this_offset(valid_indices), all_ctdms(valid_indices)}, ...
+        {@corr, fprimes_this_offset(valid_indices), all_0stim(valid_indices)}, ...
         'Options', statset('UseParallel', true));
 end
 
@@ -148,7 +148,7 @@ if params.verbose, fprintf('Left plot: f'' task vs CT moment\n'); end
 o_idx = offsets==0;
 
 figure();
-scatter(all_fprimes(:, o_idx), all_ctdms, 15, neuroncolors);
+scatter(all_fprimes(:, o_idx), all_0stim, 15, neuroncolors);
 title(sprintf('Corr. choice-triggered moment vs task f''\nr=%.3f +/- %.3e', all_correlations(o_idx), diff(confidence_intervals(:,o_idx))));
 xlabel('f'' aligned to task')
 ylabel('choice-triggered diff means')
@@ -159,7 +159,7 @@ if params.verbose, fprintf('Middle plot: f'' ortho vs CT moment\n'); end
 o_idx = offsets==45;
 
 figure();
-scatter(all_fprimes(:, o_idx), all_ctdms, 15, neuroncolors);
+scatter(all_fprimes(:, o_idx), all_0stim, 15, neuroncolors);
 title(sprintf('Corr. choice-triggered moment vs off-task f''\nr=%.3f +/- %.3e', all_correlations(o_idx), diff(confidence_intervals(:,o_idx))));
 xlabel('f'' aligned 45 degrees off task')
 ylabel('choice-triggered diff means')
