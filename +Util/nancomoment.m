@@ -12,8 +12,8 @@ function [ output, counts, indices, all_indices ] = nancomoment( X, order, symme
 % pairs where one or more of the measurements is NaN, and the mean of the
 % measurements is above minimum_value
 %
-% counts[i,j,k,...] is the number of non-nan pairs found. Where counts is 
-% zero, output is NaN
+% counts[i,j,k,...] is the number of non-nan observation involving i,j, and
+% k. Where counts is less than minimum_count, output is NaN
 %
 % all_indices is a vector of indices into the output where a value was
 %   computed. If 'symmetries' is true, this includes at most one of each
