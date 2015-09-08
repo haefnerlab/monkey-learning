@@ -1,11 +1,11 @@
 %% Load data
-clearvars -except pops_task pops_fix params;
+clearvars -except pops_task pops_fix params e;
 
 if ~exist('params', 'var')
     params = New_Parameters();
 end
 
-if ~exist('pops_task', 'var') || ~exist('pops_fix', 'var') || ~strcmp(pops_task(1).Header.monkey, params.monkey)
+if ~exist('pops_task', 'var') || ~strcmp(pops_task(1).Header.monkey, params.monkey)
     savefile = fullfile('data', params.monkey, 'preprocessed.mat');
 
     % fitting tuning curves is time-consuming; precomputed results are put in
@@ -51,8 +51,8 @@ for p_idx = 1:length(pops_task)
 
     for pair_idx = 1:length(indices)
         [n1, n2] = ind2sub([n_neurons, n_neurons], indices(pair_idx));
-        orientations_1(pair_idx) = pop.tuning(n1);
-        orientations_2(pair_idx) = pop.tuning(n2);
+        orientations_1(pair_idx) = pop.(params.nc_tuning_method)(n1);
+        orientations_2(pair_idx) = pop.(params.nc_tuning_method)(n2);
     end
     
     % take out neurons that don't have well-defined tuning
@@ -65,10 +65,10 @@ for p_idx = 1:length(pops_task)
     orientations_1 = orientations_1 - pop.Orientation;
     orientations_2 = orientations_2 - pop.Orientation;
 
-    [im_this_pop, counts_this_pop] = Vis.image_pref_orientation(orientations_1, orientations_2, correlations);
+    [im_this_pop, counts_this_pop] = Vis.image_pref_orientation(orientations_1, orientations_2, correlations, 180, params.discsize);
     counts_total = counts_total + counts_this_pop;
     countable = counts_this_pop > 0;
-    image_total(countable) = image_total(countable) + im_this_pop(countable);
+    image_total(countable) = image_total(countable) + im_this_pop(countable) .* counts_this_pop(countable);
 
     Util.subplotsquare(length(pops_task), p_idx);
     Util.imagescnan(im_this_pop); colorbar;
