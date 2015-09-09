@@ -21,6 +21,9 @@ parameters = struct(...
 
 % add in any name, value pair from varargin
 for i=1:2:length(varargin)
+    if ~isfield(parameters, varargin{i})
+        warning('Unkown parameter: %s', varargin{i});
+    end
     parameters.(varargin{i}) = varargin{i+1};
 end
 
