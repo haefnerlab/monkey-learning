@@ -1,4 +1,4 @@
-function [image, counts] = image_pref_orientation(orient_x, orient_y, xydata, imsize, circlesize)
+function [image, counts] = image_pref_orientation(orient_x, orient_y, xydata, imsize, circlesize, diagonal)
 %IMAGE_PREF_ORIENTATION 
 %
 %	I = IMAGE_PREF_ORIENTATION(orient_x, orient_y, xydata, imsize, circlesize) 
@@ -14,6 +14,7 @@ function [image, counts] = image_pref_orientation(orient_x, orient_y, xydata, im
 
 if nargin < 4, imsize = 180; end
 if nargin < 5, circlesize = 10; end
+if nargin < 6, diagonal = false; end
 
 image = zeros(imsize);
 counts = zeros(imsize);
@@ -34,9 +35,11 @@ function circle = gaussian_centered_at(cx, cy)
 end
 
 for i = 1:ndata
-    circ = gaussian_centered_at(orient_x(i), orient_y(i));
-    image = image + xydata(i) * circ;
-    counts = counts + circ; % count # values that contribute to each pixel
+    if diagonal || (orient_x(i) ~= orient_y(i))
+        circ = gaussian_centered_at(orient_x(i), orient_y(i));
+        image = image + xydata(i) * circ;
+        counts = counts + circ; % count # values that contribute to each pixel
+    end
 end
 
 % average the image based on counts, setting zero counts to NaN
