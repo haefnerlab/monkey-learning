@@ -42,12 +42,15 @@ counts_total = zeros(180);
 for p_idx = 1:length(pops_task)
     pop = pops_task(p_idx);
     n_neurons = length(pop.cellnos);
-    [noise_correlations,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, params.min_pairs, params.min_rates);
+    [noise_covariances,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, params.min_pairs, params.min_rates);
 
     % 3 flattened arrays of correlations for all valid pairs
     orientations_1 = zeros(length(indices),1);
     orientations_2 = zeros(length(indices),1);
-    correlations = noise_correlations(indices);
+    covariances = noise_covariances(indices);
+    variances = diag(noise_covariances);
+    denominator = sqrt(variances * variances');
+    correlations = covariances ./ denominator(indices);
 
     for pair_idx = 1:length(indices)
         [n1, n2] = ind2sub([n_neurons, n_neurons], indices(pair_idx));
