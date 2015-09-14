@@ -74,7 +74,7 @@ for p_idx = 1:length(pops_task)
     image_total(countable) = image_total(countable) + im_this_pop(countable) .* counts_this_pop(countable);
 
     Util.subplotsquare(length(pops_task), p_idx);
-    Util.imagescnan(im_this_pop); colorbar;
+    Util.imagescnan(im_this_pop, [1 .6 .8]); colorbar;
     title(sprintf('Noise correlations pop %d', p_idx));
 end
 
@@ -84,5 +84,5 @@ image_total(counts_total == 0) = NaN;
 image_total = image_total ./ counts_total;
 
 fig_tot = figure();
-Util.imagescnan(image_total); colorbar;
+Util.imagescnan(image_total, [1 .6 .8]); colorbar;
 title('All noise correlations across populations (task=0,90)');
