@@ -23,7 +23,7 @@ assert(mod(n_contrasts_task, 2) == 1, 'need an odd number of contrasts so zero w
 
 [n_trials_sim, n_neurons_sim, n_samples] = size(e{1}.X);
 assert(n_neurons <= n_neurons_sim);
-assert(n_trials <= n_trials_sim);
+assert(n_trials <= n_trials_sim * n_contrasts_task);
 
 % scale down the timescale assuming 0.2 seconds per sample and a total
 % trial length of 2 seconds
@@ -44,7 +44,7 @@ for p_idx = n_pops:-1:1
     random_neurons = randperm(n_neurons_sim, n_neurons);
     contrast_each_trial = randsample(contrasts_sample, n_trials, true);
     n_zerostim = sum(contrast_each_trial == 0);
-    trial_within_contrast = randperm(n_trials_sim, n_trials);
+    trial_within_contrast = randi(n_trials_sim, n_trials, 1);
     correct_choices = sign(contrast_each_trial);
     correct_choices(contrast_each_trial == 0) = round(rand(n_zerostim,1))*2-1;
 
