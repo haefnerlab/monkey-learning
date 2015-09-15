@@ -36,9 +36,11 @@ end
 
 for i = 1:ndata
     if diagonal || (orient_x(i) ~= orient_y(i))
-        circ = gaussian_centered_at(orient_x(i), orient_y(i));
-        image = image + xydata(i) * circ;
-        counts = counts + circ; % count # values that contribute to each pixel
+        if ~isnan(xydata(i))
+            circ = gaussian_centered_at(orient_x(i), orient_y(i));
+            image = image + xydata(i) * circ;
+            counts = counts + circ; % count # values that contribute to each pixel
+        end
     end
 end
 
