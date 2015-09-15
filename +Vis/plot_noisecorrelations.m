@@ -1,40 +1,10 @@
-%% Load data
-clearvars -except pops_task pops_fix params e;
+function [image_total, counts_total] = plot_noisecorrelations(pops_task, params, plot)
 
-if ~exist('params', 'var')
-    params = New_Parameters();
-end
-
-if ~exist('pops_task', 'var') || ~strcmp(pops_task(1).Header.monkey, params.monkey)
-    savefile = fullfile('data', params.monkey, 'preprocessed.mat');
-
-    % fitting tuning curves is time-consuming; precomputed results are put in
-    % a 'preprocessed.mat' file
-    if ~exist(savefile, 'file')
-        fprintf('loading data... ');
-        pops_task = Load_Task_Data(params.monkey);
-        pops_fix = Load_Fixation_Data(params.monkey);
-        [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
-        fprintf('done\n');
-    else
-        fprintf('loading preprocessed data... ');
-        savedata = load(savefile);
-        pops_task = savedata.pops_task;
-        pops_fix = savedata.pops_fix;
-        fprintf('done\n');
-    end
-
-    pops_task = Split_Conditions( pops_task );
-    pops_task = Compute_fPrime_stimulus_means( pops_task );
-    pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
-    pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix );
-
-    save(savefile, 'pops_task', 'pops_fix');
-end
+if nargin < 3, plot = true; end
 
 %% get image that sums noise correlations plotted with preferred orientations
 
-fig_each = figure();
+if plot, figure(); end
 
 image_total = zeros(180);
 counts_total = zeros(180);
@@ -73,9 +43,11 @@ for p_idx = 1:length(pops_task)
     countable = counts_this_pop > 0;
     image_total(countable) = image_total(countable) + im_this_pop(countable) .* counts_this_pop(countable);
 
-    Util.subplotsquare(length(pops_task), p_idx);
-    Util.imagescnan(im_this_pop, [1 .6 .8]); colorbar;
-    title(sprintf('Noise correlations pop %d', p_idx));
+    if plot
+        Util.subplotsquare(length(pops_task), p_idx);
+        Util.imagescnan(im_this_pop, [1 .6 .8]); colorbar;
+        title(sprintf('Noise correlations pop %d', p_idx));
+    end
 end
 
 %% plot totals
@@ -83,6 +55,10 @@ end
 image_total(counts_total == 0) = NaN;
 image_total = image_total ./ counts_total;
 
-fig_tot = figure();
-Util.imagescnan(image_total, [1 .6 .8]); colorbar;
-title('All noise correlations across populations (task=0,90)');
+if plot
+    figure();
+    Util.imagescnan(image_total, [1 .6 .8]); colorbar;
+    title('All noise correlations across populations (task=0,90)');
+end
+
+end
