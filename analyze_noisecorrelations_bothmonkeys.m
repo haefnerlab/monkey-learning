@@ -7,9 +7,23 @@ if nargin < 1, params = New_Parameters(); end
 image_total = zeros(180);
 counts_total = zeros(180);
 
-for monkey = {'lem', 'jbe'}
-    [pops_task, ~] = load_monkey(monkey{1});
-    [monkey_mean, monkey_count] = Vis.plot_noisecorrelations(pops_task, params, false);
+monkeys = {'lem', 'jbe'};
+stim_conditions = {'spikeCounts_stim0', 'spikeCounts_stim0A', 'spikeCounts_stim0B'};
+
+figure();
+
+for monk_idx = 1:length(monkeys);
+    monkey = monkeys{monk_idx};
+    [pops_task, ~] = load_monkey(monkey);
+    % get a plot of noise correlations by stimulus condition and monkey
+    for stim_idx = 1:length(stim_conditions)
+        subplot(length(monkeys), length(stim_conditions), (monk_idx-1)*length(stim_conditions)+stim_idx);
+        [stim_mean,~] = Vis.plot_noisecorrelations(pops_task, params, false, stim_conditions(stim_idx));
+        Util.imagescnan(stim_mean); colorbar;
+        title(sprintf('%s %s', monkey, stim_conditions{stim_idx}));
+    end
+    % get a total plot of averages
+    [monkey_mean, monkey_count] = Vis.plot_noisecorrelations(pops_task, params, false, stim_conditions);
     countable = monkey_count ~= 0;
     image_total(countable) = image_total(countable) + monkey_mean(countable) .* monkey_count(countable);
     counts_total = counts_total + monkey_count;
