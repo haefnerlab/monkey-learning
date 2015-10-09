@@ -41,19 +41,15 @@ popcolors = hsv(n_pops);
 % lambda function: get f' from a tuning curve at a given stimulus
 TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
 
-% lambda function: number of non-duplicate moment data
-Num_Unique_Moments = @(variables, moment) length(find(Util.ndtriu(variables * ones(1,moment))));
-
 % calculate total number of data points we will get
-n_momentdata = sum(arrayfun(@(p) Num_Unique_Moments(length(p.cellnos), params.moment), pops_task));
+n_momentdata = sum(arrayfun(@(p) length(Good_Pairs(p, params.diagonal)), pops_task));
 
 % prepare scatter plot colors (neurons colored by population)
 neuroncolors = zeros(n_momentdata,3);
 start_idx = 1;
 for p_idx=1:n_pops
     pop = pops_task(p_idx);
-    popsize = length(pop.cellnos); 
-    popmoments = Num_Unique_Moments(popsize, params.moment);
+    popmoments = length(Good_Pairs(pop, params.diagonal));
     
     end_idx = start_idx + popmoments - 1;
     neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popmoments,1);
@@ -62,11 +58,11 @@ end
 
 %% Compute "choice-triggered" moment with bootstrapped estimates
 
-if params.verbose, fprintf('computing ctdms..\n'); end
+if params.verbose, fprintf('computing noise correlations..\n'); end
 
 all_0stim = cell(params.bootstrap,1);
 
-for boot=1:params.bootstrap
+parfor boot=1:params.bootstrap
     if params.verbose && mod(boot,10)==0, fprintf('\tbootstrapped spike counts %d/%d\n', boot, params.bootstrap); end
     bootpop = Bootstrap_SpikeCounts(pops_task);
     
@@ -77,28 +73,17 @@ for boot=1:params.bootstrap
     start_idx = 1;
     for p_idx=1:n_pops
         pop = bootpop(p_idx);
-        popsize = length(pop.cellnos);
+        pairs = Good_Pairs(pop, params.diagonal);
         
-        % by 'first moment' we really mean (choiceA mean) - (choiceB mean)
-        % whereas 2nd+higher moments look at entire _stim0 distribution
-        % together
-        if params.moment == 1
-            all_indices = 1:popsize;
-            zero_stim_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
-        elseif params.moment == 2
-            % get *correlation* instead of covariance
-            [zero_stim_moment, ~, ~, all_indices] = ...
-                Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
-            variances = diag(zero_stim_moment);
-            zero_stim_moment = zero_stim_moment ./ sqrt(variances * variances');
-        else
-            [zero_stim_moment, ~, ~, all_indices] = ...
-                Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
-            % note that anywhere min_pairs isn't satisfied, ctm is NaN
-        end
+        % get zero-stimulus noise correlations
+        [noise_covariance, ~, ~, ~] = ...
+            Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
+        % get *correlation* instead of covariance
+        variances = diag(noise_covariance);
+        noise_correlation = noise_covariance ./ sqrt(variances * variances');
         
-        end_idx = start_idx + length(all_indices) - 1;
-        all_0stim{boot}(start_idx:end_idx) = zero_stim_moment(all_indices);
+        end_idx = start_idx + length(pairs) - 1;
+        all_0stim{boot}(start_idx:end_idx) = noise_correlation(pairs);
         start_idx = end_idx + 1;
     end
 end
@@ -122,28 +107,19 @@ for o_idx=1:length(offsets)
     for p_idx=1:n_pops
         pop = pops_task(p_idx);
         popsize = length(pop.cellnos);
+        pairs = Good_Pairs(pop, params.diagonal);
 
         fprime_at_offset = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.(params.fprime_curve){n_idx}, pop.Orientation + offset), 1:popsize);
         
-        % see comments in analogous part of previous section (~line 76)
-        if params.moment == 1
-            all_indices = 1:popsize;
-            fprime_moment = fprime_at_offset;
-        elseif params.moment == 2
-            [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
-%             variances = diag(fprime_moment);
-%             fprime_moment = fprime_moment ./ sqrt(variances * variances');
-        else
-            [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
-        end
+        [fprime_fprime, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true);
     
-        end_idx = start_idx + length(all_indices) - 1;
-        all_fprimes(start_idx:end_idx, o_idx) = fprime_moment(all_indices);
+        end_idx = start_idx + length(pairs) - 1;
+        all_fprimes(start_idx:end_idx, o_idx) = fprime_fprime(pairs);
         start_idx = end_idx + 1;
     end
 end
 
-%% get ctdm vs f' correlations at each 'task offset'
+%% get noise correlation vs f'f' at each 'task offset'
 if params.verbose, fprintf('computing correlations..\n'); end
 
 all_correlations = cell(params.bootstrap, 1);
@@ -198,8 +174,22 @@ if params.verbose, fprintf('Third plot: correlation as fn of offset\n'); end
 
 figure();
 Vis.boundedline(offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
-title(sprintf('Corr. f'' of tuning curve with choice-triggered moment\nas a function of distance-from-trial-center'));
+title(sprintf('Correlations (f''f'' ~ noise correlation) as a function of task-offset'));
 xlabel('offset from trial alignment');
-ylabel('correlation of tuning curve f'' at \theta+offset with choice-triggered moment');
+ylabel('corr(f''f'',NC)');
+
+end
+
+function pairs = Good_Pairs(pop, diagonal)
+
+if diagonal, k = 0;
+else k = 1; end
+
+n_neurons = length(pop.cellnos);
+pair_indexes = find(triu(ones(n_neurons), k));
+well_tuned_cells = ~isnan(pop.tuning)*1;
+well_tuned_pairs = find(well_tuned_cells' * well_tuned_cells);
+
+pairs = intersect(pair_indexes, well_tuned_pairs);
 
 end
