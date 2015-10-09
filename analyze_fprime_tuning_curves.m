@@ -131,8 +131,8 @@ for o_idx=1:length(offsets)
             fprime_moment = fprime_at_offset;
         elseif params.moment == 2
             [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
-            variances = diag(fprime_moment);
-            fprime_moment = fprime_moment ./ sqrt(variances * variances');
+%             variances = diag(fprime_moment);
+%             fprime_moment = fprime_moment ./ sqrt(variances * variances');
         else
             [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
         end
