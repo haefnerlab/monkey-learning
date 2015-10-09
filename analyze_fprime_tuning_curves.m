@@ -66,7 +66,7 @@ if params.verbose, fprintf('computing ctdms..\n'); end
 
 all_0stim = cell(params.bootstrap,1);
 
-parfor boot=1:params.bootstrap
+for boot=1:params.bootstrap
     if params.verbose && mod(boot,10)==0, fprintf('\tbootstrapped spike counts %d/%d\n', boot, params.bootstrap); end
     bootpop = Bootstrap_SpikeCounts(pops_task);
     
@@ -85,11 +85,16 @@ parfor boot=1:params.bootstrap
         if params.moment == 1
             all_indices = 1:popsize;
             zero_stim_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
+        elseif params.moment == 2
+            % get *correlation* instead of covariance
+            [zero_stim_moment, ~, ~, all_indices] = ...
+                Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
+            variances = diag(zero_stim_moment);
+            zero_stim_moment = zero_stim_moment ./ sqrt(variances * variances');
         else
             [zero_stim_moment, ~, ~, all_indices] = ...
                 Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, params.min_pairs, params.min_rates);
             % note that anywhere min_pairs isn't satisfied, ctm is NaN
-            % TODO noise correlation, not covariance
         end
         
         end_idx = start_idx + length(all_indices) - 1;
@@ -124,6 +129,10 @@ for o_idx=1:length(offsets)
         if params.moment == 1
             all_indices = 1:popsize;
             fprime_moment = fprime_at_offset;
+        elseif params.moment == 2
+            [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
+            variances = diag(fprime_moment);
+            fprime_moment = fprime_moment ./ sqrt(variances * variances');
         else
             [fprime_moment, ~, ~, all_indices] = Util.nancomoment(fprime_at_offset, params.moment, true);
         end
