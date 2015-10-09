@@ -15,3 +15,5 @@ The `test_` files also contain some plots, though mostly 'sanity checks' to ensu
 
 Loosely speaking, the lower-case functions and scripts are helpers, and those formatted like Function_Name implement the
 main analyses and preprocessing.
+
+Note that the files `+Vis/boundedlines.m` and `+Vis/outlinebounds.m` come from [kakearney's boundedline repository on Github](https://github.com/kakearney/boundedline-pkg)

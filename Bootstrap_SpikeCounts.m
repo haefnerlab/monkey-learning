@@ -3,12 +3,30 @@ function [ boot_pops_task ] = Bootstrap_SpikeCounts(pops_task)
 %returns a nearly identical array where the spikeCounts trials have been
 %resampled with replacement.
 
+spike_types = {'spikeCounts_stimA', 'spikeCounts_stimB', ...
+    'spikeCounts_stim0', 'spikeCounts_stim0A', 'spikeCounts_stim0B', ...
+    'spikeCounts_choiceA', 'spikeCounts_choiceB'};
+
 boot_pops_task = pops_task;
-
 for p_idx=1:length(pops_task)
-    n_trials = size(pops_task(p_idx).spikeCounts, 2);
-    rand_trials_with_replacement = randi(n_trials, 1, n_trials);
-    boot_pops_task(p_idx).spikeCounts = pops_task(p_idx).spikeCounts(:,rand_trials_with_replacement);
-end
+    % separately sample spike counts for each stimulus condition
+    for typ=1:length(spike_types)
+        name = spike_types{typ};
+        originals = pops_task(p_idx).(spike_types{typ});
+        n_trials = size(originals, 2);
+        rand_trials_with_replacement = randi(n_trials, 1, n_trials);
+        boot_pops_task(p_idx).(name) = originals(:,rand_trials_with_replacement);
+    end
 
+    % note that the above process is an approximation to what real
+    % bootstrapping should do since some spikeCounts are subsets of others but
+    % we resample each separately, which will likely break the subset
+    % relationship. This *does not* affect analyze_fprim_tuningcurves, and
+    % likely does not affect others
+    
+    boot_pops_task(p_idx).spikeCounts = horzcat(...
+        boot_pops_task(p_idx).spikeCounts_stimA,...
+        boot_pops_task(p_idx).spikeCounts_stimB,...
+        boot_pops_task(p_idx).spikeCounts_stim0);
+end
 end
