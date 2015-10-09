@@ -14,8 +14,10 @@ for p_idx=1:length(pops_task)
         name = spike_types{typ};
         originals = pops_task(p_idx).(spike_types{typ});
         n_trials = size(originals, 2);
-        rand_trials_with_replacement = randi(n_trials, 1, n_trials);
-        boot_pops_task(p_idx).(name) = originals(:,rand_trials_with_replacement);
+        if n_trials > 0
+            rand_trials_with_replacement = randi(n_trials, 1, n_trials);
+            boot_pops_task(p_idx).(name) = originals(:,rand_trials_with_replacement);
+        end
     end
 
     % note that the above process is an approximation to what real
