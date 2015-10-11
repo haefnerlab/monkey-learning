@@ -1,4 +1,4 @@
-function [ output, counts, indices, all_indices ] = nancomoment( X, order, symmetries, norm_variance, minimum_count, minimum_value )
+function [ output, counts, indices, all_indices ] = nancomoment( X, order, symmetries, sub_mean, norm_variance, minimum_count, minimum_value )
 %NANCOMOMENT get the order-th co-moment of X, ignoring NaN values, where each
 % column of X is a variable and each row an observation
 %
@@ -28,9 +28,10 @@ function [ output, counts, indices, all_indices ] = nancomoment( X, order, symme
 if order <= 0, error('order of moments must be greater than 0'); end
 
 if nargin < 3, symmetries=false; end
-if nargin < 4, norm_variance=false; end
-if nargin < 5, minimum_count=1; end
-if nargin < 6, minimum_value=-inf; end
+if nargin < 4, sub_mean=true; end
+if nargin < 5, norm_variance=false; end
+if nargin < 6, minimum_count=1; end
+if nargin < 7, minimum_value=-inf; end
 
 if order == 1
     output = nanmean(X, 1); % built-in function is faster for means
@@ -61,12 +62,12 @@ else
         % count how many data points survived the not-nan and min-value
         % filters
         counts(i) = sum(all_valid_observations);
+        vecs = vecs(all_valid_observations,:);
         
         % subtract mean from vecs (important: we have to do this *after*
         % determining which observations are kept so as not to skew the
         % data)
-        vecs = vecs(all_valid_observations,:);
-        vecs = vecs - ones(counts(i),1) * mean(vecs,1);
+        if sub_mean, vecs = vecs - ones(counts(i),1) * mean(vecs,1); end
         
         % compute order-th moment
         % like a dot product with <order>-many vectors instead of just 2

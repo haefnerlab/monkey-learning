@@ -36,13 +36,10 @@ colors = hsv(length(pops_task));
 for p_idx = 1:length(pops_task)
     pop = pops_task(p_idx);
     n_neurons = length(pop.cellnos);
-    [noise_covariances,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, params.min_pairs, params.min_rates);
-    variances = diag(noise_covariances);
-    denominator = sqrt(variances * variances');
-    covariances = noise_covariances(indices);
-    correlations = covariances ./ denominator(indices);
+    [noise_correlations,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, true, true, params.min_pairs, params.min_rates);
+    correlations = noise_correlations(indices);
     
-    fprime_moment = Util.nancomoment(pop.fprime_stimulus_mean, 2, false);
+    fprime_moment = Util.nancomoment(pop.fprime_stimulus_mean, 2, false, false);
     fprime_moment_norm = fprime_moment ./ sqrt(variances * variances');
     choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
     
