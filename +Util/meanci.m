@@ -20,13 +20,19 @@ for var=size(data,2):-1:1
     % consider only non-nan values for this var in computing the confidence
     % interval (1 thru n, where n is #non-nan)
     n = sum(~isnan(data(:,var)));
-    lo_idx = n * (1-interval)/2;
-    hi_idx = n - lo_idx;
+    
+    if n == 0
+        L(var) = NaN;
+        U(var) = NaN;
+    else
+        lo_idx = n * (1-interval)/2;
+        hi_idx = n - lo_idx;
 
-    % get data values at lo_idx and hi_idx, which in general won't be
-    % integers, we interpolate in the data for them.
-    L(var) = interp1(indexes, dsorted(:,var), lo_idx, 'pchip');
-    U(var) = interp1(indexes, dsorted(:,var), hi_idx, 'pchip');
+        % get data values at lo_idx and hi_idx, which in general won't be
+        % integers, we interpolate in the data for them.
+        L(var) = interp1(indexes, dsorted(:,var), lo_idx, 'pchip');
+        U(var) = interp1(indexes, dsorted(:,var), hi_idx, 'pchip');
+    end
 end
 
 end

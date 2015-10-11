@@ -17,7 +17,7 @@ for p_idx = 1:length(pops_task)
     counts_this_pop = zeros(180);
     
     for stim_idx = 1:length(stim_conditions)
-        [noise_covariances,~,indices] = Util.nancomoment(pop.(stim_conditions{stim_idx})', 2, false, params.min_pairs, params.min_rates);
+        [noise_correlations,~,indices] = Util.nancomoment(pop.(stim_conditions{stim_idx})', 2, false, true, params.min_pairs, params.min_rates);
         
         % 3 flattened arrays of correlations for all valid pairs
         % NOTE tranforming from covariance --> correlation is the same as
@@ -25,10 +25,7 @@ for p_idx = 1:length(pops_task)
         % stim_cond cases is valid
         orientations_1 = zeros(length(indices),1);
         orientations_2 = zeros(length(indices),1);
-        covariances = noise_covariances(indices);
-        variances = diag(noise_covariances);
-        denominator = sqrt(variances * variances');
-        correlations = covariances ./ denominator(indices);
+        correlations = noise_correlations(indices);
         
         for pair_idx = 1:length(indices)
             [n1, n2] = ind2sub([n_neurons, n_neurons], indices(pair_idx));
