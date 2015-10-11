@@ -166,6 +166,10 @@ title(sprintf('Corr. noise moment vs task f''\nr=%.3f +/- (%.3e/%.3e)', ...
 xlabel('f'' aligned to task')
 ylabel('choice-triggered diff means')
 
+figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
+
+savefig(fullfile(figpath, 'scatter_aligned.fig'));
+
 %% PLOT II: scatter and correlation when f' 45 degrees off task
 if params.verbose, fprintf('Second plot: f'' ortho vs CT moment\n'); end
 
@@ -178,6 +182,8 @@ title(sprintf('Corr. noise moment vs off-task f''\nr=%.3f +/- (%.3e/%.3e)', ...
 xlabel('f'' aligned 45 degrees off task')
 ylabel('choice-triggered diff means')
 
+savefig(fullfile(figpath, 'scatter_offset45.fig'));
+
 %% PLOT III: interpolate (I) and (II): correlation as a function of distance off task
 if params.verbose, fprintf('Third plot: correlation as fn of offset\n'); end
 
@@ -186,6 +192,8 @@ Vis.boundedline(offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
 title(sprintf('Correlations (f''f'' ~ noise correlation) as a function of task-offset'));
 xlabel('offset from trial alignment');
 ylabel('corr(f''f'',NC)');
+
+savefig(fullfile(figpath, 'corr_vs_offset.fig'));
 
 %% PLOT IV: significance of 3rd plot's correlations as function of distance off task
 if params.verbose, fprintf('Fourth plot: significance\n'); end
@@ -197,6 +205,8 @@ plot(offsets, mean_pvalue.*sign_r, '-r', 'LineWidth', 2);
 title(sprintf('p*sign(r) as function of task offset'));
 xlabel('offset from trial alignment');
 ylabel('significance');
+
+savefig(fullfile(figpath, 'significance.fig'));
 
 end
 
