@@ -1,0 +1,3 @@
+[submodule "Sampling Model"]
+	path = Sampling Model
+	url = https://github.com/haefnerlab/sampling_decision
