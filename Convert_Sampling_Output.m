@@ -13,9 +13,9 @@ function [ pops_task ] = Convert_Sampling_Output(e, n_pops, n_neurons, n_trials,
 % simulated neurons. Each population will contain n_trials trials that draw
 % stimuli from +/- n_contrasts_task/2 contrasts.
 %
-% We can't get a struct like pops_fix easily since we would need multiple
-% orientations, then we would need to use the same populations to do the
-% 2AFC task.
+% To get a struct array like a 'pops_fix', you would need to first run
+% Orientation_Tuning_Responses() in the sampling model, then pass that,
+% along with the output of this function, to Convert_Sampling_Tuning()
 
 n_contrasts_simulated = length(e);
 assert(n_contrasts_simulated >= n_contrasts_task);
@@ -63,7 +63,7 @@ for p_idx = n_pops:-1:1
     end
     
     pops_task(p_idx) = struct(...
-        'Header', struct('monkey', 'SIM', 'description', 'sampling model recast as monkey data'), ...
+        'Header', struct('monkey', 'SIM', 'description', 'sampling model recast as monkey data', 'SessionNumber', num2str(p_idx)), ...
         'condVec', contrast_each_trial, ...
         'condVecLabel', {'Signal Strength'}, ...
         'Orientation', 0, ... % TODO explicitly break into multiple tasks
