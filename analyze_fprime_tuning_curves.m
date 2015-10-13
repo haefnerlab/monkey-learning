@@ -116,12 +116,42 @@ for o_idx=1:length(offsets)
 
         fprime_at_offset = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.(params.fprime_curve){n_idx}, pop.Orientation + offset), 1:popsize);
         
-        [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
+        if params.moment == 1
+            fprime_moment = fprime_at_offset;
+        else
+            [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
+        end
     
         end_idx = start_idx + length(pairs) - 1;
         all_fprimes(start_idx:end_idx, o_idx) = fprime_moment(pairs);
         start_idx = end_idx + 1;
     end
+end
+
+%% Collapse rotationally symmetric data together (only need 0:45)
+
+% [0,45] stays [0,45]
+% [0,-45] flips and becomes [0,45]
+% [45,90] is really getting "closer" to the task, so it's 90-[90:45]
+sym_offset = @(o) min(abs(o), 90-abs(o));
+
+rot_sym_offsets = unique(sym_offset(offsets));
+
+% using a cell array here since there may (in general) not be the same
+% number of redundant offsets for each rotationally symmetric offset
+rot_sym_fprimes = cell(1, length(rot_sym_offsets));
+
+% keep track of how many fprimes we are binning into a single
+% rotationally-symmetric one
+n_redundant_offsets = zeros(1,length(rot_sym_offsets));
+
+for oi=1:length(offsets)
+    o = offsets(oi);
+    sym_o = sym_offset(o);
+    sym_oi = rot_sym_offsets == sym_o;
+    
+    rot_sym_fprimes{sym_oi} = vertcat(rot_sym_fprimes{sym_oi}, all_fprimes(:,oi));
+    n_redundant_offsets(sym_oi) = n_redundant_offsets(sym_oi)+1;
 end
 
 %% get correlation of (noise_moment vs f' moment) at each 'task offset'
@@ -132,15 +162,16 @@ all_pvalues = cell(params.bootstrap, 1);
 
 for boot=1:params.bootstrap
     if params.verbose && mod(boot,10)==0, fprintf('\tboot %d/%d\n', boot, params.bootstrap); end
-    all_correlations{boot} = zeros(1, length(offsets));
+    all_correlations{boot} = zeros(1, length(rot_sym_offsets));
     boot_0stim = all_0stim(boot,:)';
-    for o_idx=1:length(offsets)
-        if params.verbose, fprintf('\t\t%d/%d\n', o_idx, length(offsets)); end
+    for o_idx=1:length(rot_sym_offsets)
+        if params.verbose, fprintf('\t\t%d/%d\n', o_idx, length(rot_sym_offsets)); end
     
-        fprimes_this_offset = all_fprimes(:, o_idx);
+        fprimes_this_offset = rot_sym_fprimes{o_idx};
+        extended_0stim = repmat(boot_0stim, n_redundant_offsets(o_idx), 1);
     
-        valid_indices = ~isnan(fprimes_this_offset) & ~isnan(boot_0stim);
-        [r,p] = corr(fprimes_this_offset(valid_indices), boot_0stim(valid_indices));
+        valid_indices = ~isnan(fprimes_this_offset) & ~isnan(extended_0stim);
+        [r,p] = corr(fprimes_this_offset(valid_indices), extended_0stim(valid_indices));
         all_correlations{boot}(o_idx) = r;
         all_pvalues{boot}(o_idx) = p;
     end
@@ -157,10 +188,13 @@ minus_corr = mean_corr - lo_corr;
 %% PLOT I: scatter and correlation when f' aligned with task
 if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
 
-o_idx = offsets==0;
+o_idx = rot_sym_offsets==0;
+
+extended_0stim = repmat(nanmean(all_0stim), 1, n_redundant_offsets(o_idx));
+extended_colors = repmat(neuroncolors, n_redundant_offsets(o_idx), 1);
 
 figure();
-scatter(all_fprimes(:, o_idx), nanmean(all_0stim), 15, neuroncolors);
+scatter(rot_sym_fprimes{o_idx}, extended_0stim, 15, extended_colors);
 title(sprintf('Corr. noise moment vs task f''\nr=%.3f +/- (%.3e/%.3e)', ...
     mean_corr(o_idx), plus_corr(o_idx), minus_corr(o_idx)));
 xlabel('f'' aligned to task')
@@ -173,10 +207,13 @@ savefig(fullfile(figpath, 'scatter_aligned.fig'));
 %% PLOT II: scatter and correlation when f' 45 degrees off task
 if params.verbose, fprintf('Second plot: f'' ortho vs CT moment\n'); end
 
-o_idx = offsets==45;
+o_idx = rot_sym_offsets==45;
+
+extended_0stim = repmat(nanmean(all_0stim), 1, n_redundant_offsets(o_idx));
+extended_colors = repmat(neuroncolors, n_redundant_offsets(o_idx), 1);
 
 figure();
-scatter(all_fprimes(:, o_idx), nanmean(all_0stim), 15, neuroncolors);
+scatter(rot_sym_fprimes{o_idx}, extended_0stim, 15, extended_colors);
 title(sprintf('Corr. noise moment vs off-task f''\nr=%.3f +/- (%.3e/%.3e)', ...
     mean_corr(o_idx), plus_corr(o_idx), minus_corr(o_idx)));
 xlabel('f'' aligned 45 degrees off task')
@@ -188,7 +225,7 @@ savefig(fullfile(figpath, 'scatter_offset45.fig'));
 if params.verbose, fprintf('Third plot: correlation as fn of offset\n'); end
 
 figure();
-Vis.boundedline(offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
+Vis.boundedline(rot_sym_offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
 title(sprintf('Correlations (f''f'' ~ noise correlation) as a function of task-offset'));
 xlabel('offset from trial alignment');
 ylabel('corr(f''f'',NC)');
@@ -201,7 +238,7 @@ if params.verbose, fprintf('Fourth plot: significance\n'); end
 figure();
 mean_pvalue = mean(all_pvalues);
 sign_r = sign(mean_corr);
-plot(offsets, mean_pvalue.*sign_r, '-r', 'LineWidth', 2);
+plot(rot_sym_offsets, mean_pvalue.*sign_r, '-r', 'LineWidth', 2);
 title(sprintf('p*sign(r) as function of task offset'));
 xlabel('offset from trial alignment');
 ylabel('significance');
