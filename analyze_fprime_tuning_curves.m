@@ -1,4 +1,4 @@
-function analyze_fprime_tuning_curves( params )
+function [all_correlations, all_pvalues] = analyze_fprime_tuning_curves( params )
 %ANALYZE_FPRIME_TUNING_CURVES complementary to analyze_scatter_moments,
 % this function compares a "choice-triggered" (zero-stimulus) moment with
 % f' for different notions of f' to see if the statistical moments of 
