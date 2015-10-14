@@ -1,4 +1,4 @@
-function [all_correlations, all_pvalues] = analyze_fprime_tuning_curves( params )
+function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_fprime_tuning_curves( params )
 %ANALYZE_FPRIME_TUNING_CURVES complementary to analyze_scatter_moments,
 % this function compares a "choice-triggered" (zero-stimulus) moment with
 % f' for different notions of f' to see if the statistical moments of 
@@ -121,6 +121,9 @@ for o_idx=1:length(offsets)
         else
             [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
         end
+        
+        neuron_variances = nanvar(pop.spikeCounts_stim0',1);
+        fprime_moment = fprime_moment ./ Util.ndouter(sqrt(neuron_variances), params.moment);
     
         end_idx = start_idx + length(pairs) - 1;
         all_fprimes(start_idx:end_idx, o_idx) = fprime_moment(pairs);
