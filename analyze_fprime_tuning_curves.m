@@ -12,62 +12,63 @@ function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_fprime_tunin
 
 need_computation = true;
 if nargin > 1
-    if nargin < 3, recompute = true; end
+    if nargin < 3, recompute = false; end
     if ~recompute && exist(memo_file, 'file')
+        fprintf('already got results. loading %s\n', memo_file);
         load(memo_file);
         need_computation = false;
     end
 end
+    
+%% Load and preprocess
+
+savefile = fullfile('data', params.monkey, 'preprocessed.mat');
+
+% fitting tuning curves is time-consuming; precomputed results are put in
+% a 'preprocessed.mat' file
+if ~exist(savefile, 'file')
+    fprintf('loading data... ');
+    pops_task = Load_Task_Data(params.monkey);
+    pops_fix = Load_Fixation_Data(params.monkey);
+    [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
+    fprintf('done\n');
+else
+    fprintf('loading preprocessed data... ');
+    savedata = load(savefile);
+    pops_task = savedata.pops_task;
+    pops_fix = savedata.pops_fix;
+    fprintf('done\n');
+end
+
+pops_task = Split_Conditions( pops_task );
+pops_task = Compute_fPrime_stimulus_means( pops_task );
+pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
+pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix );
+
+save(savefile, 'pops_task', 'pops_fix');
+
+n_pops = length(pops_task);
+popcolors = hsv(n_pops);
+
+% lambda function: get f' from a tuning curve at a given stimulus
+TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
+
+% calculate total number of data points we will get
+n_momentdata = sum(arrayfun(@(p) length(Good_Pairs(p, params.moment, params.diagonal)), pops_task));
+
+% prepare scatter plot colors (neurons colored by population)
+neuroncolors = zeros(n_momentdata,3);
+start_idx = 1;
+for p_idx=1:n_pops
+    pop = pops_task(p_idx);
+    popmoments = length(Good_Pairs(pop, params.moment, params.diagonal));
+
+    end_idx = start_idx + popmoments - 1;
+    neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popmoments,1);
+    start_idx = end_idx + 1;
+end
 
 if need_computation
-    
-    %% Load and preprocess
-    
-    savefile = fullfile('data', params.monkey, 'preprocessed.mat');
-    
-    % fitting tuning curves is time-consuming; precomputed results are put in
-    % a 'preprocessed.mat' file
-    if ~exist(savefile, 'file')
-        fprintf('loading data... ');
-        pops_task = Load_Task_Data(params.monkey);
-        pops_fix = Load_Fixation_Data(params.monkey);
-        [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
-        fprintf('done\n');
-    else
-        fprintf('loading preprocessed data... ');
-        savedata = load(savefile);
-        pops_task = savedata.pops_task;
-        pops_fix = savedata.pops_fix;
-        fprintf('done\n');
-    end
-    
-    pops_task = Split_Conditions( pops_task );
-    pops_task = Compute_fPrime_stimulus_means( pops_task );
-    pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
-    pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix );
-    
-    save(savefile, 'pops_task', 'pops_fix');
-    
-    n_pops = length(pops_task);
-    popcolors = hsv(n_pops);
-    
-    % lambda function: get f' from a tuning curve at a given stimulus
-    TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
-    
-    % calculate total number of data points we will get
-    n_momentdata = sum(arrayfun(@(p) length(Good_Pairs(p, params.moment, params.diagonal)), pops_task));
-    
-    % prepare scatter plot colors (neurons colored by population)
-    neuroncolors = zeros(n_momentdata,3);
-    start_idx = 1;
-    for p_idx=1:n_pops
-        pop = pops_task(p_idx);
-        popmoments = length(Good_Pairs(pop, params.moment, params.diagonal));
-        
-        end_idx = start_idx + popmoments - 1;
-        neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popmoments,1);
-        start_idx = end_idx + 1;
-    end
     
     %% Compute "choice-triggered" or "zero-stimulus" moment with bootstrapped estimates
     
@@ -196,18 +197,18 @@ if need_computation
     all_correlations = vertcat(all_correlations{:});
     all_pvalues = vertcat(all_pvalues{:});
     
-    % get mean and confidence intervals on these correlations
-    [mean_corr, lo_corr, hi_corr] = Util.meanci(all_correlations, params.confidence);
-    plus_corr = hi_corr - mean_corr;
-    minus_corr = mean_corr - lo_corr;
-    
     %% SAVE RESULTS if specified
-    
     if nargin > 1
-        save(memo_file, 'all_fprimes', 'all_0stim', 'all_correlations', 'all_pvalues', 'rot_sym_offsets', 'offsets');
+        fprintf('saving to %s\n', memo_file);
+        save(memo_file, 'all_fprimes', 'all_0stim', 'all_correlations', 'all_pvalues', 'rot_sym_offsets', 'rot_sym_fprimes', 'offsets', 'n_redundant_offsets');
     end
 
 end
+    
+% get mean and confidence intervals on correlations
+[mean_corr, lo_corr, hi_corr] = Util.meanci(all_correlations, params.confidence);
+plus_corr = hi_corr - mean_corr;
+minus_corr = mean_corr - lo_corr;
 
 %% PLOT I: scatter and correlation when f' aligned with task
 if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end

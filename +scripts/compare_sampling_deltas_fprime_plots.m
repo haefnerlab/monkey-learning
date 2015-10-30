@@ -15,10 +15,13 @@ hold on;
 
 colors = 'cgrb';
 
+line_handles = [];
 for di=1:length(deltas)
     cm = cs{di,1};
     cminus = cm - cs{di,2};
     cplus = cs{di,3} - cm;
     
-    Vis.boundedline(o, cm, [cminus;cplus]', colors(di), 'alpha');
+    [hl, ~] = Vis.boundedline(o, cm, [cminus;cplus]', colors(di), 'alpha');
+    line_handles(di) = hl;
 end
+legend(line_handles, arrayfun(@(d) num2str(d), deltas, 'UniformOutput', false));
