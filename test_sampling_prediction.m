@@ -2,7 +2,7 @@ function params = test_sampling_prediction(delta, n, params)
 % generate predictions from sampling simulation
 
 % load preprocessed sampling data
-filename = fullfile('data', 'SIM', sprintf('sample_d%.3f_n%d.mat', delta, n));
+filename = fullfile('data', sprintf('SIM_d%.3f_v%d', delta, n), 'preprocessed.mat');
 if ~exist(filename, 'file')
     error('no sampling model prediction d=%f n=%d', delta, n);
 end
