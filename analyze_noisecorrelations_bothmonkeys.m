@@ -14,7 +14,7 @@ figure();
 
 for monk_idx = 1:length(monkeys);
     monkey = monkeys{monk_idx};
-    [pops_task, ~] = load_monkey(monkey);
+    [pops_task, ~] = load_monkey(monkey, params.recompute_tuning);
     % get a plot of noise correlations by stimulus condition and monkey
     for stim_idx = 1:length(stim_conditions)
         subplot(length(monkeys), length(stim_conditions), (monk_idx-1)*length(stim_conditions)+stim_idx);
@@ -41,12 +41,12 @@ title('All noise correlations, both monkeys included (task=0,90)');
 end
 
 
-function [pops_task, pops_fix] = load_monkey(monkey)
+function [pops_task, pops_fix] = load_monkey(monkey, recompute)
 savefile = fullfile('data', monkey, 'preprocessed.mat');
 
 % fitting tuning curves is time-consuming; precomputed results are put in
 % a 'preprocessed.mat' file
-if ~exist(savefile, 'file')
+if ~exist(savefile, 'file') || recompute
     fprintf('loading data... ');
     pops_task = Load_Task_Data(monkey);
     pops_fix = Load_Fixation_Data(monkey);
