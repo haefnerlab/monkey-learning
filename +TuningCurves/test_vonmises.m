@@ -1,9 +1,9 @@
 %% TEST Deriv
 
-params = [2.3071    6.5792    1.8156   22.4661];
+curve = [2.3071    6.5792    1.8156   22.4661];
 vals = linspace(0,180,201);
-vm = TuningCurves.vonMises(vals, params);
-vmp = TuningCurves.vonMisesDeriv(vals, params);
+vm = TuningCurves.vonMises(vals, curve);
+vmp = TuningCurves.vonMisesDeriv(vals, curve);
 vmd = diff(vm) / (vals(2)-vals(1));
 
 plot(vals, vmp);
@@ -13,12 +13,11 @@ hold off;
 legend('analytic', 'diff-approximation');
 
 %% TEST FIT
-clearvars; close all;
+clearvars -except params; close all;
 
-pops_fix = Load_Fixation_Data('jbe');
-pops_task = Load_Task_Data('jbe');
+if ~exist('params', 'var'), params = New_Parameters('monkey', 'jbe'); end
 
-[pops_task, pops_fix] = Match_Corresponding_Populations(pops_task, pops_fix);
+[pops_task, pops_fix] = Load_Preprocess(params);
 
 f = figure();
 
@@ -46,55 +45,56 @@ for pi=length(pops_fix):-1:1
             
             [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, counts);
             disp(best);
-%             disp(best_map);
-%             disp(worst);
-%             disp(worst_map);
+            disp(best_map);
+            disp(worst);
+            disp(worst_map);
             
             % scatter plot with tuning curve overlayed
-            %             scatter(orientations, counts);
-            %             hold on;
-            %             plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
-            %             plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
+            scatter(orientations, counts);
+            hold on;
+            plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
+            plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
             % plot where we thing preferred orientation is (black)
-            %             plot([best(4) best(4)], [0, max(counts)], '--k')
+            plot([best(4) best(4)], [0, max(counts)], '--k')
             % neurons already have some estimated tuning from A.B. et al
             % (green)
-            %             et = popst(pi).tuning(ni);
-            %             if ~isnan(et)
-            %                 plot([et et], [0, max(counts)], '--g')
-            %             end
-            %             axis([0,180,0,max(counts)+10]);
-            %             hold off;
-            %             title(sprintf('Population %d Neuron %d', pi, ni));
-            
-            amp(j) = best(2) * exp(best(3));
-            fve(j) = Util.Variance_Explained(counts, TuningCurves.vonMises(orientations, best));
-            tun(j) = pops_task(pi).tuning(ni);
-            if isnan(fve(j))
-                keyboard
+            et = pops_task(pi).tuning(ni);
+            if ~isnan(et)
+                plot([et et], [0, max(counts)], '--g')
             end
-%             if (fve(j) < 0.2 && ~isnan(tun(j))) || isnan(tun(j))
-%                 % look at ones without VE but with tuning well-defined?
-%                 % scatter plot with tuning curve overlayed
-%                 scatter(orientations, counts);
-%                 hold on;
-%                 plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
-%                 plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
-%                 % plot where we thing preferred orientation is (black)
-%                 plot([best(4) best(4)], [0, max(counts)], '--k')
-%                 % neurons already have some estimated tuning from A.B. et al
-%                 % (green)
-%                 et = pops_task(pi).tuning(ni);
-%                 if ~isnan(et)
-%                     plot([et et], [0, max(counts)], '--g')
-%                 else
-%                     plot([best(4) best(4)], [0, max(counts)], '--r')
-%                 end
-%                 axis([0,180,0,max(counts)+10]);
-%                 hold off;
-%                 title(sprintf('Population %d Neuron %d', pi, ni));
-%                 drawnow; pause;
-%             end
+            axis([0,180,0,max(counts)+10]);
+            hold off;
+            title(sprintf('Population %d Neuron %d', pi, ni));
+            drawnow; pause;
+            
+            %             amp(j) = best(2) * exp(best(3));
+            %             fve(j) = Util.Variance_Explained(counts, TuningCurves.vonMises(orientations, best));
+            %             tun(j) = pops_task(pi).tuning(ni);
+            %             if isnan(fve(j))
+            %                 keyboard
+            %             end
+            %             if (fve(j) < 0.2 && ~isnan(tun(j))) || isnan(tun(j))
+            %                 % look at ones without VE but with tuning well-defined?
+            %                 % scatter plot with tuning curve overlayed
+            %                 scatter(orientations, counts);
+            %                 hold on;
+            %                 plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
+            %                 plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
+            %                 % plot where we thing preferred orientation is (black)
+            %                 plot([best(4) best(4)], [0, max(counts)], '--k')
+            %                 % neurons already have some estimated tuning from A.B. et al
+            %                 % (green)
+            %                 et = pops_task(pi).tuning(ni);
+            %                 if ~isnan(et)
+            %                     plot([et et], [0, max(counts)], '--g')
+            %                 else
+            %                     plot([best(4) best(4)], [0, max(counts)], '--r')
+            %                 end
+            %                 axis([0,180,0,max(counts)+10]);
+            %                 hold off;
+            %                 title(sprintf('Population %d Neuron %d', pi, ni));
+            %                 drawnow; pause;
+            %             end
             j = j+1;
         else
             warning('#counts was not same as #orientations');
