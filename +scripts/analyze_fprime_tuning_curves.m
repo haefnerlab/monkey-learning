@@ -89,9 +89,8 @@ if need_computation
     
     if params.verbose, fprintf('computing fprime moments..\n'); end
     
-    % TODO: make # offsets controllable in params
     % no matter what, make sure 0 and 45 are included (used in plots I and II)
-    offsets = unique(horzcat(-90:5:90, [0,45]));
+    offsets = unique(horzcat(linspace(-90, 90, params.num_offsets), [0,45]));
     
     all_fprimes = zeros(n_momentdata, length(offsets)); % each column corresponds to one task-offset
     for o_idx=1:length(offsets)
@@ -112,6 +111,9 @@ if need_computation
                 [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
             end
             
+            % TODO: nanvar won't give exactly the same normalization used
+            % for the spike counts, since those first passed through the
+            % min_pairs and min_rates filters
             neuron_variances = nanvar(pop.spikeCounts_stim0',1);
             fprime_moment = fprime_moment ./ Util.ndouter(sqrt(neuron_variances), params.moment);
             
