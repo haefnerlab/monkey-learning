@@ -4,7 +4,7 @@
 
 This repository contains code used to analyze neural recordings of monkeys while they learned an orientation-discrimination task.
 
-Note that the data folder is deliberately empty, and .mat and .fig files are ignored. Only analysis code is kept here, not data nor results (and so the organization of some of the code may seem strange, given that it is designed to analyze a particularly formatted structure array of data)
+<strong><span style="color:#990000">Only our analysis code is kept under version control, not data nor results</span></strong> (and so the organization of some of the code may seem strange, given that it is designed to analyze a particularly formatted structure array of data). The data folder is deliberately empty, and .mat and .fig files are ignored. 
 
 ---
 
@@ -16,4 +16,4 @@ The `test_` files also contain some plots, though mostly 'sanity checks' to ensu
 Loosely speaking, the lower-case functions and scripts are helpers, and those formatted like Function_Name implement the
 main analyses and preprocessing.
 
-Note that the files `+Vis/boundedlines.m` and `+Vis/outlinebounds.m` come from [kakearney's boundedline repository on Github](https://github.com/kakearney/boundedline-pkg)
+The files `+Vis/boundedlines.m` and `+Vis/outlinebounds.m` come from [kakearney's boundedline repository on Github](https://github.com/kakearney/boundedline-pkg)
