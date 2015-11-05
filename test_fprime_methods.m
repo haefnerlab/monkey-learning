@@ -17,30 +17,7 @@ if ~exist('params', 'var')
     params = New_Parameters('monkey', 'lem');
 end
 
-if ~exist('pops_task', 'var') || ~exist('pops_fix', 'var')
-    savefile = fullfile('data', params.monkey, 'preprocessed.mat');
-
-    % fitting tuning curves is time-consuming; precomputed results are put in
-    % a 'preprocessed.mat' file
-    if ~exist(savefile, 'file')
-        fprintf('loading data... ');
-        pops_task = Load_Task_Data(params.monkey);
-        pops_fix = Load_Fixation_Data(params.monkey);
-        [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
-        fprintf('done\n');
-    else
-        fprintf('loading preprocessed data... ');
-        savedata = load(savefile);
-        pops_task = savedata.pops_task;
-        pops_fix = savedata.pops_fix;
-        fprintf('done\n');
-    end
-end
-
-pops_task = Split_Conditions( pops_task );
-pops_task = Compute_fPrime_stimulus_means( pops_task );
-pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
-pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix );
+[pops_task, pops_fix] = Load_Preprocess(params);
 
 colors = hsv(length(pops_task));
 

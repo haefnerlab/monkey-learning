@@ -1,4 +1,4 @@
-function analyze_scatter_moments( params, pops_task )
+function analyze_scatter_moments( params )
 %ANALYZE_SCATTER_MOMENTS compares statistical moments of f' tuning curves
 % and 'choice-triggered' distributions (when there is no stimulus)
 %
@@ -8,28 +8,7 @@ function analyze_scatter_moments( params, pops_task )
 % params.params.min_rates: min avg # spikes in the n-tuple for a trial to be counted
 
 %% Load and preprocess
-
-if nargin < 2 || ~strcmp(pops_task(1).Header.monkey, params.monkey)
-    savefile = fullfile('data', params.monkey, 'preprocessed.mat');
-
-    % fitting tuning curves is time-consuming; precomputed results are put in
-    % a 'preprocessed.mat' file
-    if ~exist(savefile, 'file')
-        fprintf('loading data... ');
-        pops_task = Load_Task_Data(params.monkey);
-        fprintf('done\n');
-    else
-        fprintf('loading preprocessed data... ');
-        savedata = load(savefile);
-        pops_task = savedata.pops_task;
-        fprintf('done\n');
-    end
-
-    pops_task = Split_Conditions( pops_task );
-    pops_task = Compute_fPrime_stimulus_means( pops_task );
-
-    save(savefile, 'pops_task', 'pops_fix');
-end
+[pops_task, pops_fix] = Load_Preprocess(params);
 
 colors = hsv(length(pops_task));
 

@@ -1,10 +1,13 @@
-function [ pops_task ] = Compute_fPrime_fixation_means(pops_task, pops_fix)
+function [ pops_task ] = Compute_fPrime_fixation_means(pops_task, pops_fix, recompute)
 %Compute_fPrime_fixation_means compute f' as from fixatation data using mean
 % values from that task (or simple linear interpolation between them)
 %
 % (analogous to the other Compute_fprime_... functions)
 
-if ~isfield(pops_task, 'tuning_pw_curves')
+if nargin < 3, recompute = false; end
+
+
+if ~isfield(pops_task, 'tuning_pw_curves') || recompute
     pops_task = TuningCurves.Get_PiecewiseLinear_TuningCurves(pops_task, pops_fix);
 end
 

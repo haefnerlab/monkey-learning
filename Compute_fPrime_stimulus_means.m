@@ -1,8 +1,10 @@
-function [ populations ] = Compute_fPrime_stimulus_means( populations )
+function [ populations ] = Compute_fPrime_stimulus_means( populations, recompute )
 %Compute_fPrime compute f' (change in mean response with change in
 %stimulus) and return modified populations with new .fprime_stimulus_mean vector
 
-if(~isfield(populations, 'spikeCounts_choiceA'))
+if nargin < 2, recompute = false; end
+
+if(~isfield(populations, 'spikeCounts_choiceA')) || recompute
     populations = Split_Conditions( populations );
 end
 
