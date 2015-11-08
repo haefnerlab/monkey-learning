@@ -6,13 +6,13 @@ savefile = fullfile('data', params.monkey, 'preprocessed.mat');
 % fitting tuning curves is time-consuming; precomputed results are put in
 % a 'preprocessed.mat' file
 if ~exist(savefile, 'file') || params.recompute_tuning
-    fprintf('loading data... ');
+    fprintf('loading data (%s)... ', params.monkey);
     pops_task = Load_Task_Data(params.monkey);
     pops_fix = Load_Fixation_Data(params.monkey);
     [pops_task, pops_fix] = Match_Corresponding_Populations( pops_task, pops_fix );
     fprintf('done\n');
 else
-    fprintf('loading preprocessed data... ');
+    fprintf('loading preprocessed data (%s)... ', params.monkey);
     savedata = load(savefile);
     pops_task = savedata.pops_task;
     pops_fix = savedata.pops_fix;
