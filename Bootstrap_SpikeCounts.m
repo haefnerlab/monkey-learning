@@ -31,4 +31,7 @@ for p_idx=1:length(pops_task)
         boot_pops_task(p_idx).spikeCounts_stimB,...
         boot_pops_task(p_idx).spikeCounts_stim0);
 end
+
+boot_pops_task = Compute_fPrime_stimulus_means( boot_pops_task );
+
 end
