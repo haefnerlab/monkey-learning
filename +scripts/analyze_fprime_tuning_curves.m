@@ -90,7 +90,7 @@ if need_computation
     if params.verbose, fprintf('computing fprime moments..\n'); end
     
     % no matter what, make sure 0 and 45 are included (used in plots I and II)
-    offsets = unique(horzcat(linspace(-90, 90, params.num_offsets), [0,45]));
+    offsets = unique(horzcat(linspace(0, 90, params.num_offsets), [0,45]));
     
     all_fprimes = zeros(n_momentdata, length(offsets)); % each column corresponds to one task-offset
     for o_idx=1:length(offsets)
