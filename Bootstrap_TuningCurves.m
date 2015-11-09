@@ -1,4 +1,7 @@
 function [boot_pops_task, boot_pops_fix] = Bootstrap_TuningCurves( pops_task, pops_fix )
+%BOOTSTRAP_TUNINGCURVES do bootstrap resampling of pops_fix spike counts at
+%each stimulus orientation and recompute tuning curves (results of which
+%are saved into boot_pops_task as usual)
 
 boot_pops_task = pops_task;
 boot_pops_fix = pops_fix;
