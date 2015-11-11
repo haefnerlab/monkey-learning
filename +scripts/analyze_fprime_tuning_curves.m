@@ -103,7 +103,7 @@ if need_computation
     %% set up task offsets, collapsing rotationally symmetric data together (only need 0:45)
     
     % no matter what, make sure 0 and 45 are included (used in plots I and II)
-    offsets = unique(horzcat(linspace(0, 90, params.num_offsets), [0,45]));
+    offsets = unique(horzcat(linspace(0, 45, params.num_offsets), [0,45]));
     n_offsets = length(offsets);
     
     % [0,45] stays [0,45]
@@ -167,7 +167,7 @@ if need_computation
                 % for the spike counts, since those first passed through the
                 % min_pairs and min_rates filters
                 neuron_variances = nanvar(pop.spikeCounts_stim0',1);
-                fprime_moment = fprime_moment ./ Util.ndouter(sqrt(neuron_variances), params.moment);
+                fprime_moment = fprime_moment ./ reshape(Util.ndouter(sqrt(neuron_variances), params.moment), size(fprime_moment));
                 
                 end_idx = start_idx + length(pairs) - 1;
                 all_fprimes{boot}(start_idx:end_idx, o_idx) = fprime_moment(pairs);
@@ -239,7 +239,7 @@ if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
 o_idx = rot_sym_offsets==0;
             
 % collapse together rotationally symmetric offsets
-fprimes_this_offset = boot_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
+fprimes_this_offset = nanmean(all_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx),:),3);
 var_fprimes_this_offset = var_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
 % ... into a single column vector
 fprimes_this_offset = fprimes_this_offset(:);
@@ -267,7 +267,7 @@ if params.verbose, fprintf('Second plot: f'' ortho vs CT moment\n'); end
 o_idx = rot_sym_offsets==45;
 
 % collapse together rotationally symmetric offsets
-fprimes_this_offset = boot_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
+fprimes_this_offset = nanmean(all_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx),:),3);
 var_fprimes_this_offset = var_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
 % ... into a single column vector
 fprimes_this_offset = fprimes_this_offset(:);
