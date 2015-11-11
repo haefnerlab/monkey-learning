@@ -17,6 +17,8 @@ if nargin > 1
         fprintf('already got results. loading %s\n', memo_file);
         load(memo_file);
         need_computation = false;
+        % define things that would otherwise be skipped by need_comp=false
+        sym_offset = @(o) min(abs(o), 90-abs(o));
     end
 end
     
@@ -97,9 +99,6 @@ if need_computation
     
     all_0stim = vertcat(all_0stim{:});
     
-    % compute variance of 0stim moment across bootstrapping
-    var_0stim = nanvar(all_0stim, 1, 1)';
-    
     %% set up task offsets, collapsing rotationally symmetric data together (only need 0:45)
     
     % no matter what, make sure 0 and 45 are included (used in plots I and II)
@@ -179,10 +178,6 @@ if need_computation
     % collapse together all_fprimes across bootstrapped trials
     all_fprimes = cat(3, all_fprimes{:});
     
-    % in correlations, fprime values will be weighted by their inverse
-    % variance across bootstrapping
-    var_fprimes= squeeze(nanvar(all_fprimes, 1, 3));
-    
     %% get correlation of (noise_moment vs f' moment) at each 'task offset'
     if params.verbose, fprintf('computing correlations..\n'); end
     
@@ -227,6 +222,13 @@ if need_computation
     end
 
 end
+    
+% compute variance of 0stim moment across bootstrapping
+var_0stim = nanvar(all_0stim, 1, 1)';
+    
+% in correlations, fprime values will be weighted by their inverse
+% variance across bootstrapping
+var_fprimes= squeeze(nanvar(all_fprimes, 1, 3));
     
 % get mean and confidence intervals on correlations
 [mean_corr, lo_corr, hi_corr] = Util.meanci(all_correlations, params.confidence);
