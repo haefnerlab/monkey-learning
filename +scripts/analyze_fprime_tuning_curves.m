@@ -127,7 +127,7 @@ if need_computation
     if params.verbose, fprintf('computing fprime moments..\n'); end% all_fprimes{boot} is a matrix: (n_momentdata x n_offsets)
     all_fprimes = cell(params.bootstrap, 1);
     
-    for boot=1:params.bootstrap
+    parfor boot=1:params.bootstrap
         if params.verbose && mod(boot,10)==0, fprintf('\tbootstrapped tuning curves %d/%d\n', boot, params.bootstrap); end
         
         % load precomputed bootstrap_tuningcurves results if they exist,
@@ -191,7 +191,7 @@ if need_computation
     all_correlations = cell(params.bootstrap, 1);
     all_pvalues = cell(params.bootstrap, 1);
     
-    for boot=1:params.bootstrap
+    parfor boot=1:params.bootstrap
         if params.verbose && mod(boot,10)==0, fprintf('\tboot %d/%d\n', boot, params.bootstrap); end
         all_correlations{boot} = zeros(1, n_roffsets);
         boot_0stim = all_0stim(boot,:)';
