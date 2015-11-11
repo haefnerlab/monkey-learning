@@ -223,7 +223,7 @@ if need_computation
     %% SAVE RESULTS if specified
     if nargin > 1
         fprintf('saving to %s\n', memo_file);
-        save(memo_file, 'params', 'all_fprimes', 'all_0stim', 'all_correlations', 'all_pvalues', 'rot_sym_offsets', 'rot_sym_fprimes', 'offsets', 'n_redundant_offsets');
+        save(memo_file, 'params', 'all_fprimes', 'all_0stim', 'all_correlations', 'all_pvalues', 'rot_sym_offsets', 'offsets', 'n_redundant_offsets', 'n_offsets', 'n_roffsets');
     end
 
 end
