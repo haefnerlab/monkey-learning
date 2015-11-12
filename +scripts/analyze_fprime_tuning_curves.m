@@ -47,15 +47,35 @@ for p_idx=1:n_pops
 end
 
 if need_computation
+    %% set up task offsets, collapsing rotationally symmetric data together (only need 0:45)
     
-    %% Compute "choice-triggered" or "zero-stimulus" moment with bootstrapped estimates
+    % no matter what, make sure 0 and 45 are included (used in plots I and II)
+    offsets = unique(horzcat(linspace(-45, 45, params.num_offsets), [0,45]));
+    n_offsets = length(offsets);
     
-    if params.verbose, fprintf('computing noise correlations..\n'); end
+    % [0,45] stays [0,45]
+    % [0,-45] flips and becomes [0,45]
+    % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
+    sym_offset = @(o) min(abs(o), 90-abs(o));
+    
+    rot_sym_offsets = unique(sym_offset(offsets));
+    n_roffsets = length(rot_sym_offsets);
+    
+    % keep track of how many fprimes we are binning into a single
+    % rotationally-symmetric one
+    n_redundant_offsets = zeros(1,n_roffsets);
+    
+    for oi=1:n_roffsets
+        n_redundant_offsets(oi) = sum(sym_offset(offsets) == rot_sym_offsets(oi));
+    end
+    
+    %% Loop over bootstrapped spike data to get 0stim and fprime moments
     
     all_0stim = cell(params.bootstrap,1);
+    all_fprimes = cell(params.bootstrap, 1);
     
     parfor boot=1:params.bootstrap
-        if params.verbose && mod(boot,10)==0, fprintf('\tbootstrapped spike counts %d/%d\n', boot, params.bootstrap); end
+        if params.verbose && mod(boot,10)==0, fprintf('\tbootstrap loop %d/%d\n', boot, params.bootstrap); end
         
         % load precomputed results if they exist,
         % otherwise compute from scratch and save
@@ -69,6 +89,8 @@ if need_computation
             [bootpop] = Bootstrap_SpikeCounts(bootpop);
             save_pops(boot_file, bootpop, bootfix); 
         end
+        
+        %% Compute "choice-triggered" or "zero-stimulus" moment with bootstrapped estimates
         
         all_0stim{boot} = zeros(1,n_momentdata);
         
@@ -95,53 +117,8 @@ if need_computation
             all_0stim{boot}(start_idx:end_idx) = spikes_moment(pairs);
             start_idx = end_idx + 1;
         end
-    end
-    
-    all_0stim = vertcat(all_0stim{:});
-    
-    %% set up task offsets, collapsing rotationally symmetric data together (only need 0:45)
-    
-    % no matter what, make sure 0 and 45 are included (used in plots I and II)
-    offsets = unique(horzcat(linspace(0, 45, params.num_offsets), [0,45]));
-    n_offsets = length(offsets);
-    
-    % [0,45] stays [0,45]
-    % [0,-45] flips and becomes [0,45]
-    % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
-    sym_offset = @(o) min(abs(o), 90-abs(o));
-    
-    rot_sym_offsets = unique(sym_offset(offsets));
-    n_roffsets = length(rot_sym_offsets);
-    
-    % keep track of how many fprimes we are binning into a single
-    % rotationally-symmetric one
-    n_redundant_offsets = zeros(1,n_roffsets);
-    
-    for oi=1:n_roffsets
-        n_redundant_offsets(oi) = sum(sym_offset(offsets) == rot_sym_offsets(oi));
-    end
-    
-    %% Compute f' moment at each of a range of offsets from the task
-    
-    if params.verbose, fprintf('computing fprime moments..\n'); end% all_fprimes{boot} is a matrix: (n_momentdata x n_offsets)
-    all_fprimes = cell(params.bootstrap, 1);
-    
-    parfor boot=1:params.bootstrap
-        if params.verbose && mod(boot,10)==0, fprintf('\tbootstrapped tuning curves %d/%d\n', boot, params.bootstrap); end
         
-        % load precomputed bootstrap_tuningcurves results if they exist,
-        % otherwise compute from scratch and save
-        boot_file = fullfile('data', params.monkey, sprintf('boot_pop_%04d.mat', boot));
-        if exist(boot_file, 'file')
-            fprintf('loading %s\n', boot_file);
-            precomputed = load(boot_file);
-            bootpop = precomputed.pops_task;
-        else
-            [bootpop, bootfix] = Bootstrap_TuningCurves(pops_task, pops_fix);
-            [bootpop] = Bootstrap_SpikeCounts(bootpop);
-            save_pops(boot_file, bootpop, bootfix); 
-        end
-        
+        %% Compute f' moment at each of a range of offsets from the task
         all_fprimes{boot} = zeros(n_momentdata, n_offsets);
         for o_idx=1:n_offsets
             
@@ -175,7 +152,8 @@ if need_computation
         end
     end
     
-    % collapse together all_fprimes across bootstrapped trials
+    % collapse together data across bootstrapped trials
+    all_0stim = vertcat(all_0stim{:});
     all_fprimes = cat(3, all_fprimes{:});
     
     %% get correlation of (noise_moment vs f' moment) at each 'task offset'
