@@ -108,12 +108,11 @@ if need_computation
                 spikes_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
                 spikes_moment = spikes_moment ./ sqrt(nanvar(pop.spikeCounts_stim0', 1));
             elseif mod(params.moment,2) == 1
-                % use outer product of choice-triggered direction for odd
-                % moments
-                spikes_diff = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
-                spikes_moment = Util.nancomoment(spikes_diff, params.moment, true, false);
-                neuron_variances = nanvar(pop.spikeCounts_stim0',1);
-                spikes_moment = spikes_moment ./ reshape(Util.ndouter(sqrt(neuron_variances), params.moment), size(spikes_moment));
+                % for odd moments, use difference of co-moment across
+                % choices
+                moment_choiceA = Util.nancomoment(pop.spikeCounts_choiceA', params.moment, true, true, true, params.min_pairs, params.min_rates);
+                moment_choiceB = Util.nancomoment(pop.spikeCounts_choiceB', params.moment, true, true, true, params.min_pairs, params.min_rates);
+                spikes_moment = moment_choiceA - moment_choiceB;
             else
                 % for 2nd and higher even moments, get stats of all _stim0 spikes
                 [spikes_moment, ~, ~, ~] = ...
