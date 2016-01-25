@@ -38,6 +38,7 @@ for p_idx = 1:length(pops_task)
     n_neurons = length(pop.cellnos);
     [noise_correlations,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, true, true, params.min_pairs, params.min_rates);
     correlations = noise_correlations(indices);
+    variances = nanvar(pop.spikeCounts_stim0',1);
     
     fprime_moment = Util.nancomoment(pop.fprime_stimulus_mean, 2, false, false);
     fprime_moment_norm = fprime_moment ./ sqrt(variances * variances');
