@@ -37,3 +37,12 @@ set(get(Ax(3,1), 'xlabel'), 'string', 'Stimulus-driven');
 set(get(Ax(3,2), 'xlabel'), 'string', '(high contrast) von Mises fit');
 set(get(Ax(3,3), 'xlabel'), 'string', '(high contrast) means');
 
+[r,~] = corrcoef(all_fprimes_stimulus_means, all_fprimes_bestfit);
+fprintf('stimulus means -- von mises fit:\tr=%f\n', r(2));
+
+[r,~] = corrcoef(all_fprimes_stimulus_means, all_fprimes_fixation_means);
+fprintf('stimulus means -- linear fit:\tr=%f\n', r(2));
+
+[r,~] = corrcoef(all_fprimes_fixation_means, all_fprimes_bestfit);
+fprintf('linear fit -- von mises fit:\tr=%f\n', r(2));
+
