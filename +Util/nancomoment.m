@@ -33,6 +33,8 @@ if nargin < 5, norm_variance=false; end
 if nargin < 6, minimum_count=1; end
 if nargin < 7, minimum_value=-inf; end
 
+stddevs = sqrt(nanvar(X,1));
+
 if order == 1
     output = nanmean(X, 1); % built-in function is faster for means
 else
@@ -74,10 +76,8 @@ else
         nddots(i) = sum(prod(vecs, 2), 1);
         
         if norm_variance
-            % normalize by sqrt(var i * var j * var k ...), where we use only
-            % the measurements that passed the 'validity' filters to compute
-            % the variance
-            nddots(i) = nddots(i) / sqrt(prod(nanvar(vecs,1)));
+            % normalize by sqrt(var i * var j * var k ...)
+            nddots(i) = nddots(i) / prod(stddevs(idxs));
         end
     end
     
