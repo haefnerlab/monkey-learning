@@ -110,10 +110,9 @@ if need_computation
             elseif mod(params.moment,2) == 1
                 % use outer product of choice-triggered direction for odd
                 % moments
+                % TODO - use min_pairs and min_rates here
                 spikes_diff = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
-                spikes_moment = Util.nancomoment(spikes_diff, params.moment, true, false);
-                neuron_variances = nanvar(pop.spikeCounts_stim0',1);
-                spikes_moment = spikes_moment ./ reshape(Util.ndouter(sqrt(neuron_variances), params.moment), size(spikes_moment));
+                spikes_moment = Util.nancomoment(spikes_diff, params.moment, true, true);
             else
                 % for 2nd and higher even moments, get stats of all _stim0 spikes
                 [spikes_moment, ~, ~, ~] = ...
@@ -146,9 +145,6 @@ if need_computation
                     [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
                 end
                 
-                % TODO: nanvar won't give exactly the same normalization used
-                % for the spike counts, since those first passed through the
-                % min_pairs and min_rates filters
                 neuron_variances = nanvar(pop.spikeCounts_stim0',1);
                 fprime_moment = fprime_moment ./ reshape(Util.ndouter(sqrt(neuron_variances), params.moment), size(fprime_moment));
                 
@@ -297,6 +293,10 @@ ylabel('significance');
 
 savefig(fullfile(figpath, 'significance.fig'));
 
+end
+
+function save_pops(file, pops_task, pops_fix)
+save(file, 'pops_task', 'pops_fix');
 end
 
 function pairs = Good_Pairs(pop, moment, diagonal)
