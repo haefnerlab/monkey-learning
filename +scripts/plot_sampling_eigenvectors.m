@@ -5,7 +5,7 @@ function [] = plot_sampling_eigenvectors(e, standout, subsample)
 if nargin < 2, standout = 5; end
 if nargin < 3, subsample = 1; end
 
-[~, n_neurons, n_samples] = size(e.X);
+[n_trials, n_neurons, n_samples] = size(e.X);
 
 % scale down the timescale assuming 0.2 seconds per sample and a total
 % trial length of 2 seconds
@@ -18,6 +18,7 @@ scale_by = 2 / sim_seconds;
 spike_counts = scale_by * sum(e.X, 3);
 spike_counts = spike_counts(:, reorder);
 
+n_keep = n_neurons;
 if subsample < 1
     n_keep = round(n_neurons * subsample);
     random_idxs = sort(randperm(n_neurons, n_keep));
@@ -36,6 +37,7 @@ for i=1:standout
 end
 xlabel('rank');
 ylabel('eigenvalue');
+savefig(sprintf('sampling_eigenvalues_t%d_n%d.fig', n_trials, n_keep));
 
 figure();
 plot(pref_orientations, zeros(size(pref_orientations)), '--k');
@@ -46,4 +48,6 @@ end
 axis tight;
 set(gca, 'YLim', [-.1,.1]);
 xlabel('preferred direction');
+savefig(sprintf('sampling_eigenvectors_t%d_n%d.fig', n_trials, n_keep));
 end
+
