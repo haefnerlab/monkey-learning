@@ -103,11 +103,13 @@ if need_computation
             
             % get moment (divided by sqrt(variances); this means we're looking
             % at correlations not covariances, etc)
-            % TODO - use min_rates here
             if params.moment == 1
                 % use "choice-triggered" direction for first moment
                 spikes_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
                 spikes_moment = spikes_moment ./ sqrt(nanvar(pop.spikeCounts_stim0', 1));
+                % remove data where min_rates not satisfied
+                below_rate_threshold = nanmean(pop.spikeCounts_stim0,2)' <= params.min_rates;
+                spikes_moment(below_rate_threshold) = NaN;
             elseif mod(params.moment,2) == 1
                 % use outer product of choice-triggered direction for odd
                 % moments
