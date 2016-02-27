@@ -103,6 +103,7 @@ if need_computation
             
             % get moment (divided by sqrt(variances); this means we're looking
             % at correlations not covariances, etc)
+            % TODO - use min_rates here
             if params.moment == 1
                 % use "choice-triggered" direction for first moment
                 spikes_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
@@ -187,7 +188,7 @@ if need_computation
             extended_0stim = repmat(boot_0stim, n_redundant_offsets(o_idx), 1);
             
             valid_indices = ~isnan(fprimes_this_offset) & ~isnan(extended_0stim);
-            [r,p] = corr(fprimes_this_offset(valid_indices), extended_0stim(valid_indices));
+            [r,p] = corr(fprimes_this_offset(valid_indices), extended_0stim(valid_indices), 'type', params.corr_type);
             all_correlations{boot}(o_idx) = r;
             all_pvalues{boot}(o_idx) = p;
         end
