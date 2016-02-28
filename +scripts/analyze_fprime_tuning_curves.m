@@ -18,7 +18,11 @@ if nargin > 1
         load(memo_file);
         need_computation = false;
         % define things that would otherwise be skipped by need_comp=false
-        sym_offset = @(o) min(abs(o), 90-abs(o));
+        if params.collapse_offsets
+            sym_offset = @(o) min(abs(o), 90-abs(o));
+        else
+            sym_offset = @(o) o;
+        end
     end
 end
     
@@ -52,11 +56,14 @@ if need_computation
     % no matter what, make sure 0 and 45 are included (used in plots I and II)
     offsets = unique(horzcat(linspace(-45, 45, params.num_offsets), [0,45]));
     n_offsets = length(offsets);
-    
-    % [0,45] stays [0,45]
-    % [0,-45] flips and becomes [0,45]
-    % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
-    sym_offset = @(o) min(abs(o), 90-abs(o));
+    if params.collapse_offsets
+        % [0,45] stays [0,45]
+        % [0,-45] flips and becomes [0,45]
+        % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
+        sym_offset = @(o) min(abs(o), 90-abs(o));
+    else
+        sym_offset = @(o) o;
+    end
     
     rot_sym_offsets = unique(sym_offset(offsets));
     n_roffsets = length(rot_sym_offsets);
