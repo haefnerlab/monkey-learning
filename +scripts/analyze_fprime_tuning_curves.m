@@ -18,7 +18,11 @@ if nargin > 1
         load(memo_file);
         need_computation = false;
         % define things that would otherwise be skipped by need_comp=false
-        sym_offset = @(o) min(abs(o), 90-abs(o));
+        if params.collapse_offsets
+            sym_offset = @(o) min(abs(o), 90-abs(o));
+        else
+            sym_offset = @(o) o;
+        end
     end
 end
     
@@ -52,11 +56,14 @@ if need_computation
     % no matter what, make sure 0 and 45 are included (used in plots I and II)
     offsets = unique(horzcat(linspace(-45, 45, params.num_offsets), [0,45]));
     n_offsets = length(offsets);
-    
-    % [0,45] stays [0,45]
-    % [0,-45] flips and becomes [0,45]
-    % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
-    sym_offset = @(o) min(abs(o), 90-abs(o));
+    if params.collapse_offsets
+        % [0,45] stays [0,45]
+        % [0,-45] flips and becomes [0,45]
+        % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
+        sym_offset = @(o) min(abs(o), 90-abs(o));
+    else
+        sym_offset = @(o) o;
+    end
     
     rot_sym_offsets = unique(sym_offset(offsets));
     n_roffsets = length(rot_sym_offsets);
@@ -103,11 +110,13 @@ if need_computation
             
             % get moment (divided by sqrt(variances); this means we're looking
             % at correlations not covariances, etc)
-            % TODO - use min_rates here
             if params.moment == 1
                 % use "choice-triggered" direction for first moment
                 spikes_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
                 spikes_moment = spikes_moment ./ sqrt(nanvar(pop.spikeCounts_stim0', 1));
+                % remove data where min_rates not satisfied
+                below_rate_threshold = nanmean(pop.spikeCounts_stim0,2)' <= params.min_rates;
+                spikes_moment(below_rate_threshold) = NaN;
             elseif mod(params.moment,2) == 1
                 % use outer product of choice-triggered direction for odd
                 % moments
