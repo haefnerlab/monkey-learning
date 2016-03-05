@@ -112,21 +112,21 @@ if need_computation
             % at correlations not covariances, etc)
             if params.moment == 1
                 % use "choice-triggered" direction for first moment
-                spikes_moment = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
-                spikes_moment = spikes_moment ./ sqrt(nanvar(pop.spikeCounts_stim0', 1));
+                spikes_moment = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
+                spikes_moment = spikes_moment ./ sqrt(nanvar(pop.spikeRates_stim0', 1));
                 % remove data where min_rates not satisfied
-                below_rate_threshold = nanmean(pop.spikeCounts_stim0,2)' <= params.min_rates;
+                below_rate_threshold = nanmean(pop.spikeRates_stim0,2)' <= params.min_rates;
                 spikes_moment(below_rate_threshold) = NaN;
             elseif mod(params.moment,2) == 1
                 % use outer product of choice-triggered direction for odd
                 % moments
                 % TODO - use min_pairs and min_rates here
-                spikes_diff = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
+                spikes_diff = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
                 spikes_moment = Util.nancomoment(spikes_diff, params.moment, true, true);
             else
                 % for 2nd and higher even moments, get stats of all _stim0 spikes
                 [spikes_moment, ~, ~, ~] = ...
-                    Util.nancomoment(pop.spikeCounts_stim0', params.moment, true, true, true, params.min_pairs, params.min_rates);
+                    Util.nancomoment(pop.spikeRates_stim0', params.moment, true, true, true, params.min_pairs, params.min_rates);
             end
             
             end_idx = start_idx + length(pairs) - 1;
@@ -155,7 +155,7 @@ if need_computation
                     [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
                 end
                 
-                neuron_variances = nanvar(pop.spikeCounts_stim0',1);
+                neuron_variances = nanvar(pop.spikeRates_stim0',1);
                 fprime_moment = fprime_moment ./ reshape(Util.ndouter(sqrt(neuron_variances), params.moment), size(fprime_moment));
                 
                 end_idx = start_idx + length(pairs) - 1;

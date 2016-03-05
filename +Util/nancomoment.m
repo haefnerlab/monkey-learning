@@ -59,6 +59,7 @@ else
         
         % also only keep those where the mean (across vecs) is >
         % minimum_value
+        % TODO - allow geometric mean in params
         all_valid_observations = all_valid_observations & mean(vecs,2) > minimum_value;
         
         % count how many data points survived the not-nan and min-value

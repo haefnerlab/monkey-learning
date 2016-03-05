@@ -24,6 +24,7 @@ for p_idx = 1:length(pops_fix)
 end
     
 %%% recompute maximum likelihood tuning curves
+[boot_pops_task, boot_pops_fix] = Split_Conditions(boot_pops_task, boot_pops_fix);
 boot_pops_task = Compute_fPrime_bestfit( boot_pops_task, boot_pops_fix, true );
 boot_pops_task = Compute_fPrime_fixation_means( boot_pops_task, boot_pops_fix, true);
 

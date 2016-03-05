@@ -26,7 +26,7 @@ i = 1;
 hold on;
 for pi=1:length(pops_task)
     pop = pops_task(pi);
-    choice_triggered_delta_means = (nanmean(pop.spikeCounts_choiceA,2)-nanmean(pop.spikeCounts_choiceB,2))';
+    choice_triggered_delta_means = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
     scatter(pop.fprime_stimulus_mean, choice_triggered_delta_means, 5, colors(pi,:));
     
     next_i = i+length(pop.fprime_stimulus_mean);
@@ -62,7 +62,7 @@ for moment = 2:params.moment
         if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(pops_task), length(pop.cellnos)); end;
         % get f'f'f'... up to moment times
         [stimulus_moments, ~, indices] = Util.nancomoment(pop.fprime_stimulus_mean, moment, true, false);
-        choice_triggered_delta_means = Util.nancomoment(pop.spikeCounts_stim0', moment, true, true, true, params.min_pairs, params.min_rates);
+        choice_triggered_delta_means = Util.nancomoment(pop.spikeRates_stim0', moment, true, true, true, params.min_pairs, params.min_rates);
         
         scatter(stimulus_moments(indices), choice_triggered_delta_means(indices), 5, colors(pi,:));
         
