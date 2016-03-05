@@ -1,4 +1,4 @@
-function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeRates, use_map, n_init )
+function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, use_map, n_init, trialDur )
 %FITVONMISES ML or MAP fit a von Mises tuning curve (see vonMises()) to
 % (orientation,rate) data. Assumed poisson variability and some
 % mostly-arbitrary priors on parameters
@@ -14,34 +14,30 @@ function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises
 % - quality: log-posterior of data with MAP fit of Poisson distributed
 %            rates
 
-if nargin < 3
-    use_map = true;
-end
+if nargin < 3, use_map = true; end
+if nargin < 4, n_init = 20; end
+if nargin < 5, trialDur = 1; end
 
-if nargin < 4
-    n_init = 20;
-end
-
-N = numel(spikeRates);
+N = numel(spikeCounts);
 
 % treat both as column vectors
 orientations = reshape(orientations(1:N), N, 1);
-spikeRates  = reshape(spikeRates,  N, 1);
+spikeCounts  = reshape(spikeCounts,  N, 1);
 
 % remove data points with NaN values
-valid_values = ~isnan(spikeRates) & ~isinf(spikeRates) & ~isinf(orientations);
+valid_values = ~isnan(spikeCounts) & ~isinf(spikeCounts) & ~isinf(orientations);
 orientations = orientations(valid_values);
-spikeRates = spikeRates(valid_values);
+spikeCounts = spikeCounts(valid_values);
 
 % Priors for sampling model parameters
-rate_mean = mean(spikeRates);
-rate_min = min(spikeRates);
-rate_max = max(spikeRates);
+count_mean = mean(spikeCounts);
+count_min = min(spikeCounts);
+count_max = max(spikeCounts);
 orientation_spacing = min(diff(sort(unique(orientations))));
 
-r_0_mean = rate_mean;
+r_0_mean = count_mean;
 r_max_mean = 0;
-r_max_dev = sqrt((rate_max - rate_min));
+r_max_dev = sqrt((count_max - count_min));
 k_mean = 2*orientation_spacing;
 k_dev = 10;
 
@@ -56,7 +52,7 @@ log_p_k     = @(k)     -normlike([k_mean, k_dev], k);
 log_p_th    = @(th)    log(1.0/180);
 
 if use_map
-    fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeRates, params)) ...
+    fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeCounts, params)) ...
         + log_p_r_0(params(1)) ...
         + log_p_r_max(params(2)) ...
         + log_p_k(params(3)) ...
@@ -64,7 +60,7 @@ if use_map
 else
     % Max Likelihood version is MAP sans priors, and otherwise everything
     % is identical (still sample initial values n_init times, etc)
-    fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeRates, params));
+    fn_to_maximize = @(params) sum(log_likelihood(orientations, spikeCounts, params));
 end
 
 fn_to_minimize = @(params) -fn_to_maximize(params);
@@ -93,7 +89,9 @@ worst_params = optim_params(worst_idx, :);
 
 % we were minimizing negative log likelihood. max likelihood (and the
 % corresponding value) is negative of the minimized fn at the solution
-curve = @(o) TuningCurves.vonMises(o, best_params);
+% 'curve' is a function that takes an orientation and returns a spike
+% *rate* (wherease ML fit was to counts with Poisson distribution)
+curve = @(o) TuningCurves.vonMises(o, best_params) / trialDur;
 
 end
 
