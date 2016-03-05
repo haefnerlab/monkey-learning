@@ -1,4 +1,4 @@
-function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, use_map, n_init, trialDur )
+function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, use_map, n_init, trialDurSecs )
 %FITVONMISES ML or MAP fit a von Mises tuning curve (see vonMises()) to
 % (orientation,rate) data. Assumed poisson variability and some
 % mostly-arbitrary priors on parameters
@@ -16,7 +16,7 @@ function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises
 
 if nargin < 3, use_map = true; end
 if nargin < 4, n_init = 20; end
-if nargin < 5, trialDur = 1; end
+if nargin < 5, trialDurSecs = 1; end
 
 N = numel(spikeCounts);
 
@@ -91,7 +91,7 @@ worst_params = optim_params(worst_idx, :);
 % corresponding value) is negative of the minimized fn at the solution
 % 'curve' is a function that takes an orientation and returns a spike
 % *rate* (wherease ML fit was to counts with Poisson distribution)
-curve = @(o) TuningCurves.vonMises(o, best_params) / trialDur;
+curve = @(o) TuningCurves.vonMises(o, best_params) / trialDurSecs;
 
 end
 

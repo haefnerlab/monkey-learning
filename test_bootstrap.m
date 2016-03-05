@@ -15,17 +15,17 @@ os = linspace(0,180,181);
 
 subplot(4,3,1);
 hold on;
-plot(pops_fix(1).condVec(:,strcmpi(pops_fix(1).condVecLabel, 'orientation')), pops_fix(1).spikeCounts(1,:), 'o');
+plot(pops_fix(1).condVec(:,strcmpi(pops_fix(1).condVecLabel, 'orientation')), pops_fix(1).spikeRates(1,:), 'o');
 plot(os, pops_task(1).tuning_vm_curves{1}(os));
 
 subplot(4,3,2);
 hold on;
-plot(pops_fix(1).condVec(:,strcmpi(pops_fix(1).condVecLabel, 'orientation')), pops_fix(1).spikeCounts(2,:), 'o');
+plot(pops_fix(1).condVec(:,strcmpi(pops_fix(1).condVecLabel, 'orientation')), pops_fix(1).spikeRates(2,:), 'o');
 plot(os, pops_task(1).tuning_vm_curves{2}(os));
 
 subplot(4,3,3);
 hold on;
-plot(pops_fix(1).condVec(:,strcmpi(pops_fix(1).condVecLabel, 'orientation')), pops_fix(1).spikeCounts(3,:), 'o');
+plot(pops_fix(1).condVec(:,strcmpi(pops_fix(1).condVecLabel, 'orientation')), pops_fix(1).spikeRates(3,:), 'o');
 plot(os, pops_task(1).tuning_vm_curves{3}(os));
 
 for resample=1:3
@@ -33,16 +33,16 @@ for resample=1:3
 
     subplot(4,3,resample*3+1);
     hold on;
-    plot(bpf(1).condVec(:,strcmpi(bpf(1).condVecLabel, 'orientation')), bpf(1).spikeCounts(1,:), 'o');
+    plot(bpf(1).condVec(:,strcmpi(bpf(1).condVecLabel, 'orientation')), bpf(1).spikeRates(1,:), 'o');
     plot(os, bpt(1).tuning_vm_curves{1}(os));
     
     subplot(4,3,resample*3+2);
     hold on;
-    plot(bpf(1).condVec(:,strcmpi(bpf(1).condVecLabel, 'orientation')), bpf(1).spikeCounts(2,:), 'o');
+    plot(bpf(1).condVec(:,strcmpi(bpf(1).condVecLabel, 'orientation')), bpf(1).spikeRates(2,:), 'o');
     plot(os, bpt(1).tuning_vm_curves{2}(os));
     
     subplot(4,3,resample*3+3);
     hold on;
-    plot(bpf(1).condVec(:,strcmpi(bpf(1).condVecLabel, 'orientation')), bpf(1).spikeCounts(3,:), 'o');
+    plot(bpf(1).condVec(:,strcmpi(bpf(1).condVecLabel, 'orientation')), bpf(1).spikeRates(3,:), 'o');
     plot(os, bpt(1).tuning_vm_curves{3}(os));
 end
