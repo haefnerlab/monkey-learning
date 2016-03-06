@@ -34,6 +34,7 @@ if nargin < 6, minimum_count=1; end
 if nargin < 7, minimum_value=-inf; end
 
 stddevs = sqrt(nanvar(X,1));
+means = nanmean(X,1);
 
 if order == 1
     output = nanmean(X, 1); % built-in function is faster for means
@@ -67,10 +68,8 @@ else
         counts(i) = sum(all_valid_observations);
         vecs = vecs(all_valid_observations,:);
         
-        % subtract mean from vecs (important: we have to do this *after*
-        % determining which observations are kept so as not to skew the
-        % data)
-        if sub_mean, vecs = vecs - ones(counts(i),1) * mean(vecs,1); end
+        % subtract mean to get moment around the center
+        if sub_mean, vecs = vecs - ones(counts(i),1) * means(idxs); end
         
         % compute order-th moment
         % like a dot product with <order>-many vectors instead of just 2

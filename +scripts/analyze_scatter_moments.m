@@ -2,84 +2,97 @@ function analyze_scatter_moments( params )
 %ANALYZE_SCATTER_MOMENTS compares statistical moments of f' tuning curves
 % and 'choice-triggered' distributions (when there is no stimulus)
 %
-% Comparisons are done up to the params.moment moment
+% Comparisons are done for 1st- and 2nd-order predictions
 %
 % params.params.min_pairs: min # n-tuples of not-NaN trials for the moment to be considered valid 
 % params.params.min_rates: min avg # spikes in the n-tuple for a trial to be counted
 
 %% Load and preprocess
-[pops_task, pops_fix] = Load_Preprocess(params);
+[pops_task, pops_fix, full_pops_task, full_pops_fix] = Load_Preprocess(params);
 
 colors = hsv(length(pops_task));
 
 %% compare first moment (diff in means)
 
 figure();
-Util.subplotsquare(params.moment, 1);
+subplot(1,2,1);
 
 % concatenation of all fprimes and CT?Ms for getting correlations
 n_all_fprimes = sum(cellfun(@length, {pops_task.fprime_stimulus_mean}));
 all_fprimes = zeros(1,n_all_fprimes);
 all_ctdms   = zeros(1,n_all_fprimes);
+all_selections = zeros(1,n_all_fprimes);
 i = 1;
 
 hold on;
 for pi=1:length(pops_task)
     pop = pops_task(pi);
     choice_triggered_delta_means = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
-    scatter(pop.fprime_stimulus_mean, choice_triggered_delta_means, 5, colors(pi,:));
+    % normalize by standard deviation
+    variances = nanvar(pop.spikeRates_stim0,1,2)';
+    choice_triggered_delta_means = choice_triggered_delta_means ./ sqrt(variances);
+    fprime = pop.fprime_stimulus_mean ./ sqrt(variances);
+    % FILTER: tuned to orientation and >minimum spike/sec
+    selections = (pop.anova < 0.05) & nanmean(pop.spikeRates_stim0,2)' > params.min_rates;
+    scatter(fprime(selections), choice_triggered_delta_means(selections), 5, colors(pi,:));
     
-    next_i = i+length(pop.fprime_stimulus_mean);
-    all_fprimes(i:next_i-1) = pop.fprime_stimulus_mean;
+    next_i = i+length(fprime);
+    all_fprimes(i:next_i-1) = fprime;
     all_ctdms(i:next_i-1) = choice_triggered_delta_means;
+    all_selections(i:next_i-1) = selections;
     i = next_i;
 end
 hold off;
 
-valid_correlations = ~isnan(all_ctdms);
-[R, P] = corrcoef(all_fprimes(valid_correlations), all_ctdms(valid_correlations));
+valid_entries = ~isnan(all_ctdms) & all_selections;
+[R, P] = corrcoef(all_fprimes(valid_entries), all_ctdms(valid_entries));
 
 axis square;
-title(sprintf('Moment %d :: Correlation = %.4f :: p=%.2e', 1, R(2), P(2)));
-xlabel('tuning curve f'' statistics');
-ylabel('zero-stimulus noise statistics');
+title(sprintf('%s :: 1st-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
+xlabel('f'' / sigma_i');
+ylabel('?_choice r_i / sigma_i');
 
-%% Compare higher-order moments
-for moment = 2:params.moment
-    Util.subplotsquare(params.moment, moment);
+%% compare second moment (noise correlations vs f'f')
 
-    % concatenation of all fprimes and CT?Ms for getting correlations
-    n_all_fprimes = sum(cellfun(@(fp) sum(Util.ndtriu(length(fp) * ones(1,moment))), {pops_task.fprime_stimulus_mean}));
-    all_fprimes = zeros(1,n_all_fprimes);
-    all_ctdms   = zeros(1,n_all_fprimes);
-    i = 1;
+subplot(1,2,2);
 
-    if params.verbose, fprintf('Calculating moment %d\n', moment); end
+% concatenation of all fprimes and CT?Ms for getting correlations
+corrs = [];
+fpfp  = [];
+selections = [];
 
-    hold on;
-    for pi=1:length(pops_task)
-        pop = pops_task(pi);
-        if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(pops_task), length(pop.cellnos)); end;
-        % get f'f'f'... up to moment times
-        [stimulus_moments, ~, indices] = Util.nancomoment(pop.fprime_stimulus_mean, moment, true, false);
-        choice_triggered_delta_means = Util.nancomoment(pop.spikeRates_stim0', moment, true, true, true, params.min_pairs, params.min_rates);
-        
-        scatter(stimulus_moments(indices), choice_triggered_delta_means(indices), 5, colors(pi,:));
-        
-        next_i = i + length(indices);
-        all_fprimes(i:next_i-1) = stimulus_moments(indices);
-        all_ctdms(i:next_i-1)   = choice_triggered_delta_means(indices);
-        i = next_i;
-    end
-    hold off;
+hold on;
+for pi=1:length(pops_task)
+    pop = pops_task(pi);
+    if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', pi, length(pops_task), length(pop.cellnos)); end;
+    
+    % compare zero-signal correlations to fp_i fp_j / (sigma_i sigma_j)
+    variances = nanvar(pop.spikeRates_stim0,1,2);
+    sigma_ij = sqrt(variances * variances');
+    pop_corrs = Util.nancomoment(pop.spikeRates_stim0', 2, true, true, true, params.min_pairs, params.min_rates);
+    pop_fpfp = Util.ndouter(pop.fprime_stimulus_mean', 2) ./ sigma_ij;
+    pop_select = logical(Util.ndouter(pop.anova' < 0.05, 2));
+    % ignore diagonal
+    for i=1:length(variances), pop_select(i,i) = false; end
+    % flatten to 1d array of pairwise stats
+    pop_corrs = pop_corrs(:);
+    pop_fpfp = pop_fpfp(:);
+    pop_select = pop_select(:);
 
-    valid_correlations = ~isnan(all_ctdms);
-    [R, P] = corrcoef(all_fprimes(valid_correlations), all_ctdms(valid_correlations));
+    scatter(pop_fpfp(pop_select), pop_corrs(pop_select), 5, colors(pi,:));
 
-    axis square;
-    title(sprintf('Moment %d :: Correlation = %.4f :: p=%.2e', moment, R(2), P(2)));
-    xlabel('tuning curve f'' statistics');
-    ylabel('zero-stimulus noise statistics');
+    corrs = vertcat(corrs, pop_corrs);
+    fpfp = vertcat(fpfp, pop_fpfp);
+    selections = vertcat(selections, pop_select);
 end
+hold off;
+
+valid_entries = ~isnan(corrs) & selections;
+[R, P] = corrcoef(fpfp(valid_entries), corrs(valid_entries));
+
+axis square;
+title(sprintf('%s :: 2nd-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
+xlabel('fp_i fp_j / sig_i sig_j');
+ylabel('noise correlations');
     
 end

@@ -24,7 +24,8 @@ end
 [pops_task, pops_fix] = Split_Conditions( pops_task, pops_fix );
 pops_task = Compute_fPrime_stimulus_means( pops_task, params.recompute_tuning );
 pops_task = Compute_fPrime_bestfit( pops_task, pops_fix, params.recompute_tuning );
-pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix, params.recompute_tuning);
+pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix, params.recompute_tuning );
+[pops_task, pops_fix] = Compute_Sensitivity_Anova( pops_task, pops_fix );
 
 % For the 'full' data, we can only get fprime from stimulus means
 % (the Match_Corresponding_Populations() function filtered them down into

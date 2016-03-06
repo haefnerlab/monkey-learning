@@ -19,7 +19,7 @@ for n_idx=1:length(pop.cellnos)
     valid = ~isnan(pop.spikeRates(n_idx, :));
     coeffs = polyfit(pop.condVec(valid), pop.spikeRates(n_idx,valid)', 1);
     % linear fit with r(s) = coeffs(1)*s + coeffs(0)
-    pop.fprimes_stimulus_means(n_idx) = coeffs(1);
+    pop.fprime_stimulus_mean(n_idx) = coeffs(1);
 end
 
 end
