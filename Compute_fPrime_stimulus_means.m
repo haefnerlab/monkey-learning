@@ -7,11 +7,9 @@ function [ populations ] = Compute_fPrime_stimulus_means( populations, recompute
 
 if nargin < 2, recompute = false; end
 
-if(~isfield(populations, 'spikeCounts_choiceA')) || recompute
-    populations = Split_Conditions( populations );
+if ~isfield(populations, 'fprime_stimulus_mean') || ~isfield(populations, 'fprime_pvalue') || recompute
+    populations = arrayfun(@Compute_fPrime_Single_Pop, populations);
 end
-
-populations = arrayfun(@Compute_fPrime_Single_Pop, populations);
 
 end
 
@@ -25,9 +23,9 @@ for n_idx=1:length(pop.cellnos)
     valid = ~isnan(pop.spikeRates(n_idx, :));
     stats = regstats(pop.spikeRates(n_idx,valid)', pop.condVec(valid), ...
         'linear', 'tstat');
-    % linear fit with r(s) = stats.beta(1)*s + stats.beta(2)
-    pop.fprime_stimulus_mean(n_idx) = stats.tstat.beta(1);
-    pop.fprime_pvalue = stats.tstat.pval(1);
+    % linear fit with r(s) = stats.beta(2)*s + stats.beta(1)
+    pop.fprime_stimulus_mean(n_idx) = stats.tstat.beta(2);
+    pop.fprime_pvalue = stats.tstat.pval(2);
 end
 
 end

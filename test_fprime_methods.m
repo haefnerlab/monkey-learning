@@ -1,7 +1,7 @@
 % f-prime refers to the derivative of the tuning function of a neuron with
 % respect to the change in stimulus. We have two ways of computing it:
 %
-% in Compute_fPrime_stimulus_means, we use the 'standard' method of fitting 
+% in Compute_fPrime_stimulus_means, we use the 'standard' method of fitting
 %   a linear function to the responses in the 'task' dataset
 %
 % in Compute_fPrime_bestfit, we use the fixation dataset to fit a vonMises
@@ -66,10 +66,23 @@ for p_idx=1:length(pops_task)
         % redo linear fit (same as in stimulus-means function, but this
         % gets us the offset too)
         valid = ~isnan(pop.spikeRates(n_idx, :));
-        coeffs = polyfit(pop.condVec(valid), pop.spikeRates(n_idx,valid)', 1);
+        stats = regstats(pop.spikeRates(n_idx,valid)', pop.condVec(valid), ...
+            'linear', 'tstat');
         % plot linear fit
-        plot(stims, coeffs(2) + coeffs(1) * stims);
+        fit_means = stats.tstat.beta(1) + stats.tstat.beta(2) * stims;
+        plot(stims, fit_means);
+        
+        % compute RMSE
+        means = zeros(size(stims));
+        for s_idx=1:length(stims)
+            means(s_idx) = nanmean(pop.spikeRates(n_idx, pop.condVec == stims(s_idx)));
+        end
+        rmse(i) = sqrt(sum((means - fit_means).^2));
+        
         hold off;
         i = i+1;
     end
 end
+
+figure();
+hist(rmse, 50);
