@@ -86,3 +86,5 @@ end
 
 figure();
 hist(rmse, 50);
+xlabel('rmse of f'' fit');
+ylabel('count');
