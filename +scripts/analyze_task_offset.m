@@ -1,5 +1,5 @@
-function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_fprime_tuning_curves( params, memo_file, recompute, figpath )
-%ANALYZE_FPRIME_TUNING_CURVES complementary to analyze_scatter_moments,
+function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_task_offset( params, memo_file, recompute, figpath )
+%ANALYZE_TASK_OFFSET complementary to analyze_scatter_moments,
 % this function compares a "choice-triggered" (zero-stimulus) moment with
 % f' for different notions of f' to see if the statistical moments of 
 % choice-triggered responses are aligned to the task

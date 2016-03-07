@@ -15,7 +15,7 @@ parameters = struct(...
     'bootstrap', 1000,...
     'confidence', 0.95,... % confidence interval for plotting bootstrapped results
     'diagonal', false,... % whether to include self-correlations in analysis
-    'num_offsets', 37, ... % for analyze_fprime_tuning_curves, number of 'hypothetical tasks' to test
+    'num_offsets', 37, ... % for analyze_task_offset, number of 'hypothetical tasks' to test
     'collapse_offsets', true, ... % whether to collapse together rotationally symmetric offsets (which is mildly broken for odd moments)
     'corr_type', 'Pearson', ... % may also be 'Spearman' (i.e. the 'type' argument to the corr() function)
     'exclusion_rule', 'anova', ... % may also be 'fprime_pvalue'
