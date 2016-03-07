@@ -60,6 +60,9 @@ axis square;
 title(sprintf('%s :: 1st-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
 xlabel('f'' / sigma_i');
 ylabel('?_choice r_i / sigma_i');
+if nargin > 1
+    savefig(fullfile(figpath, 'scatter1.fig'));
+end
 
 %% compare second moment (noise correlations vs f'f')
 
@@ -103,5 +106,8 @@ axis square;
 title(sprintf('%s :: 2nd-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
 xlabel('fp_i fp_j / sig_i sig_j');
 ylabel('noise correlations');
+if nargin > 1
+    savefig(fullfile(figpath, 'scatter2.fig'));
+end
     
 end
