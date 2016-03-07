@@ -131,7 +131,7 @@ if need_computation
             elseif mod(params.moment,2) == 1
                 % use outer product of choice-triggered direction for odd
                 % moments
-                % TODO - use min_pairs and min_rates here
+                % TODO - use min_pairs and min_rates here, do choice_sign
                 spikes_diff = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
                 spikes_moment = Util.nancomoment(spikes_diff, params.moment, true, true);
             else
