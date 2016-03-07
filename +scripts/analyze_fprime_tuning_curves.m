@@ -341,28 +341,13 @@ else k = 1; end
 n_neurons = length(pop.cellnos);
 unq_pairs = find(Util.ndtriu(n_neurons*ones(1,moment), k));
 
-% part 2: find where ~isnan(i) and ~isnan(j), etc.
-well_tuned = ~isnan(pop.tuning)*1;
+% part 2: keep only neurons that are 'well tuned' as defined by ANOVA test
+well_tuned = (pop.anova < 0.05);
 
 % now find where "all cells i,j,k,... had good tuning" by multiplying the
 % logical array well_tuned by itself using a generalization of outer 
 % product to n-dimensions (and there are 'moment' dimensions here)
-if moment > 1
-    % make a cell array, each entry containing a copy of well_tuned (which
-    % is a row-vector)
-    copies_of_well_tuned = mat2cell(repmat(well_tuned, moment, 1), ones(1,moment));
-    % expand copies out into ndgrid (n-dimensional generalization of
-    % meshgrid)
-    [grids{1:moment}] = ndgrid(copies_of_well_tuned{:});
-    
-    grid = grids{1};
-    for i=2:moment
-        grid = grid .* grids{i};
-    end
-    well_tuned_idxs = find(grid);
-else
-    well_tuned_idxs = find(~isnan(well_tuned));
-end
+well_tuned_idxs = find(Util.ndouter(well_tuned, moment));
 
 % end result is the intersection of the two sets of indexes
 pairs = intersect(unq_pairs, well_tuned_idxs);
