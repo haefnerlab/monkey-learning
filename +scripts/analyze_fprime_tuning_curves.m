@@ -177,6 +177,8 @@ for p_idx=1:n_pops
 end
 filtered_indices = vertcat(filtered_indices{:});
 
+if params.verbose, fprintf('filter is keeping %d/%d\n', sum(filtered_indices), length(filtered_indices)); end
+
 %% get correlation of (noise_moment vs f' moment) at each 'task offset'
 % and taking into account which 'filters' should be applied
 
@@ -219,10 +221,10 @@ all_correlations = vertcat(all_correlations{:});
 all_pvalues = vertcat(all_pvalues{:});
     
 % compute variance of 0stim moment across bootstrapping
-var_0stim = nanvar(all_0stim, 1, 1)';
+var_0stim = nanvar(horzcat(all_0stim{:}), 1, 2);
     
 % likewise get variance across bootstrapping of fprime moments
-var_fprimes= squeeze(nanvar(all_fprimes, 1, 3));
+var_fprimes= squeeze(nanvar(cat(3,all_fprimes{:}), 1, 3));
     
 % get mean and confidence intervals on correlations
 [mean_corr, lo_corr, hi_corr] = Util.meanci(all_correlations, params.confidence);
@@ -295,7 +297,7 @@ end
 if params.verbose, fprintf('Third plot: correlation as fn of offset\n'); end
 
 figure();
-Vis.boundedline(rot_sym_offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
+Vis.boundedline(rot_sym_offsets, mean_corr, [minus_corr', plus_corr'], 'b', 'alpha');
 title(sprintf('Correlations (f''f'' ~ noise correlation) as a function of task-offset'));
 xlabel('offset from trial alignment');
 ylabel('corr(f''f'',NC)');
@@ -306,7 +308,7 @@ savefig(fullfile(figpath, sprintf('corr_vs_offset_m%d.fig', params.moment)));
 if params.verbose, fprintf('Fourth plot: significance\n'); end
 
 figure();
-Vis.boundedline(rot_sym_offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
+Vis.boundedline(rot_sym_offsets, mean_pv, [zeros(size(plus_pv')), plus_pv'], 'r', 'alpha');
 set(gca, 'YScale', 'log');
 title(sprintf('p-value of correlation as function of task offset'));
 xlabel('offset from trial alignment');
