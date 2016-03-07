@@ -1,4 +1,4 @@
-function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_fprime_tuning_curves( params, memo_file, recompute )
+function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_fprime_tuning_curves( params, memo_file, recompute, figpath )
 %ANALYZE_FPRIME_TUNING_CURVES complementary to analyze_scatter_moments,
 % this function compares a "choice-triggered" (zero-stimulus) moment with
 % f' for different notions of f' to see if the statistical moments of 
@@ -250,7 +250,9 @@ plus_pv = hi_pv - mean_pv;
 minus_pv = mean_pv - lo_pv;
 
 %% SCATTER PLOTS - commented out b/c redundant with analyze_scatter_moments
-figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
+if nargin < 4
+    figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
+end
 %%% PLOT I: scatter and correlation when f' aligned with task
 % if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
 % 
