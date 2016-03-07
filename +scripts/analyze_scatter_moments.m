@@ -1,4 +1,4 @@
-function analyze_scatter_moments( params )
+function analyze_scatter_moments( params, figpath )
 %ANALYZE_SCATTER_MOMENTS compares statistical moments of f' tuning curves
 % and 'choice-triggered' distributions (when there is no stimulus)
 %
@@ -42,7 +42,7 @@ for pi=1:length(pops_task)
     choice_triggered_delta_means = choice_triggered_delta_means ./ sqrt(variances);
     fprime = pop.fprime_stimulus_mean ./ sqrt(variances);
     % FILTER: tuned to orientation and >minimum spike/sec
-    selections = (pop.anova < 0.05) & nanmean(pop.spikeRates_stim0,2)' > params.min_rates;
+    selections = (pop.(params.exclusion_rule) < params.exclusion_threshold) & nanmean(pop.spikeRates_stim0,2)' > params.min_rates;
     scatter(fprime(selections), choice_triggered_delta_means(selections), 5, colors(pi,:));
     
     next_i = i+length(fprime);
@@ -80,7 +80,7 @@ for pi=1:length(pops_task)
     sigma_ij = sqrt(variances * variances');
     pop_corrs = Util.nancomoment(pop.spikeRates_stim0', 2, true, true, true, params.min_pairs, params.min_rates);
     pop_fpfp = Util.ndouter(pop.fprime_stimulus_mean', 2) ./ sigma_ij;
-    pop_select = logical(Util.ndouter(pop.anova' < 0.05, 2));
+    pop_select = logical(Util.ndouter(pop.(params.exclusion_rule) < (params.exclusion_threshold), 2));
     % ignore diagonal
     for i=1:length(variances), pop_select(i,i) = false; end
     % flatten to 1d array of pairwise stats

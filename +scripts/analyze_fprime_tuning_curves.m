@@ -36,14 +36,14 @@ popcolors = hsv(n_pops);
 TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
 
 % calculate total number of data points we will get
-n_momentdata = sum(arrayfun(@(p) length(Good_Pairs(p, params.moment, params.diagonal)), pops_task));
+n_momentdata = sum(arrayfun(@(p) length(Good_Pairs(p, params)), pops_task));
 
 % prepare scatter plot colors (neurons colored by population)
 neuroncolors = zeros(n_momentdata,3);
 start_idx = 1;
 for p_idx=1:n_pops
     pop = pops_task(p_idx);
-    popmoments = length(Good_Pairs(pop, params.moment, params.diagonal));
+    popmoments = length(Good_Pairs(pop, params));
 
     end_idx = start_idx + popmoments - 1;
     neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popmoments,1);
@@ -91,6 +91,14 @@ if need_computation
             fprintf('loading %s\n', boot_file);
             precomputed = load(boot_file);
             bootpop = precomputed.pops_task;
+            % TODO - remove this bit
+            if ~isfield(bootpop, 'anova')
+                [bootpop, bootfix] = Split_Conditions(bootpop, precomputed.pops_fix);
+                bootpop = Compute_Sensitivity_Anova(bootpop, bootfix);
+            end
+            if ~isfield(bootpop, 'fprime_pvalue')
+                bootpop = Compute_fPrime_stimulus_means(bootpop,true);
+            end
         else
             [bootpop, bootfix] = Bootstrap_TuningCurves(pops_task, pops_fix);
             [bootpop] = Bootstrap_SpikeCounts(bootpop);
@@ -106,7 +114,7 @@ if need_computation
         start_idx = 1;
         for p_idx=1:n_pops
             pop = bootpop(p_idx);
-            pairs = Good_Pairs(pop, params.moment, params.diagonal);
+            pairs = Good_Pairs(pop, params);
             
             % get moment (divided by sqrt(variances); this means we're looking
             % at correlations not covariances, etc)
@@ -156,7 +164,7 @@ if need_computation
             for p_idx=1:n_pops
                 pop = bootpop(p_idx);
                 popsize = length(pop.cellnos);
-                pairs = Good_Pairs(pop, params.moment, params.diagonal);
+                pairs = Good_Pairs(pop, params);
                 
                 fprime_at_offset = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.(params.fprime_curve){n_idx}, pop.Orientation + offset), 1:popsize);
                 
@@ -242,6 +250,7 @@ plus_pv = hi_pv - mean_pv;
 minus_pv = mean_pv - lo_pv;
 
 %% SCATTER PLOTS - commented out b/c redundant with analyze_scatter_moments
+figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
 %%% PLOT I: scatter and correlation when f' aligned with task
 % if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
 % 
@@ -266,7 +275,6 @@ minus_pv = mean_pv - lo_pv;
 % xlabel('f'' aligned to task')
 % ylabel('choice-triggered diff means')
 % 
-% figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
 % 
 % savefig(fullfile(figpath, 'scatter_aligned.fig'));
 % 
@@ -325,31 +333,4 @@ end
 
 function save_pops(file, pops_task, pops_fix)
 save(file, 'pops_task', 'pops_fix');
-end
-
-function pairs = Good_Pairs(pop, moment, diagonal)
-%GOOD_PAIRS finds indexes (i,j,k,..) where
-% 1) they form a unique set (i.e. 1,2 and 2,1 not both included) and
-% 2) all neurons i, j, and k have well-defined tuning.
-%
-% "pairs" is a bit of a misnomer; with moment=3 it's triples, etc.
-
-if diagonal, k = 0;
-else k = 1; end
-
-% part 1: get unique pairs
-n_neurons = length(pop.cellnos);
-unq_pairs = find(Util.ndtriu(n_neurons*ones(1,moment), k));
-
-% part 2: keep only neurons that are 'well tuned' as defined by ANOVA test
-well_tuned = (pop.anova < 0.05);
-
-% now find where "all cells i,j,k,... had good tuning" by multiplying the
-% logical array well_tuned by itself using a generalization of outer 
-% product to n-dimensions (and there are 'moment' dimensions here)
-well_tuned_idxs = find(Util.ndouter(well_tuned, moment));
-
-% end result is the intersection of the two sets of indexes
-pairs = intersect(unq_pairs, well_tuned_idxs);
-
 end
