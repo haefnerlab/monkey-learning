@@ -7,8 +7,10 @@ function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_fprime_tunin
 % params.params.fprime_curve may be 'tuning_vm_curves' to use von Mises fits or
 %   'tuning_pw_curves' to use piecewise-linear interpolations from the
 %   fixation task as the tuning curve
+%
+% see New_Parameters() for other inputs that may be set
 
-%% just load precomputed results and remake plots if possible
+%% just load precomputed results, filter, and redo plots if possible
 
 need_computation = true;
 if nargin > 1
@@ -17,81 +19,36 @@ if nargin > 1
         fprintf('already got results. loading %s\n', memo_file);
         load(memo_file);
         need_computation = false;
-        % define things that would otherwise be skipped by need_comp=false
-        if params.collapse_offsets
-            sym_offset = @(o) min(abs(o), 90-abs(o));
-        else
-            sym_offset = @(o) o;
-        end
     end
 end
     
 %% Load and preprocess
 [pops_task, pops_fix] = Load_Preprocess(params);
-
+    
 n_pops = length(pops_task);
-popcolors = hsv(n_pops);
+n_momentdata = sum(arrayfun(@(p) length(p.cellnos)^params.moment, pops_task));
+% make array of offsets to be tested, ensuring that 0 and 45 are included
+offsets = unique(horzcat(linspace(-45, 45, params.num_offsets), [0,45]));
 
 % lambda function: get f' from a tuning curve at a given stimulus
 TuningCurve_fPrime_At = @(curve, angle) (curve(angle) - curve(angle+90));
 
-% calculate total number of data points we will get
-n_momentdata = sum(arrayfun(@(p) length(Good_Pairs(p, params)), pops_task));
-
-% prepare scatter plot colors (neurons colored by population)
-neuroncolors = zeros(n_momentdata,3);
-start_idx = 1;
-for p_idx=1:n_pops
-    pop = pops_task(p_idx);
-    popmoments = length(Good_Pairs(pop, params));
-
-    end_idx = start_idx + popmoments - 1;
-    neuroncolors(start_idx:end_idx,:) = repmat(popcolors(p_idx,:),popmoments,1);
-    start_idx = end_idx + 1;
-end
-
+%% Loop over bootstrapped spike data to get 0stim and fprime moments as cell arrays
 if need_computation
-    %% set up task offsets, collapsing rotationally symmetric data together (only need 0:45)
-    
-    % no matter what, make sure 0 and 45 are included (used in plots I and II)
-    offsets = unique(horzcat(linspace(-45, 45, params.num_offsets), [0,45]));
-    n_offsets = length(offsets);
-    if params.collapse_offsets
-        % [0,45] stays [0,45]
-        % [0,-45] flips and becomes [0,45]
-        % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
-        sym_offset = @(o) min(abs(o), 90-abs(o));
-    else
-        sym_offset = @(o) o;
-    end
-    
-    rot_sym_offsets = unique(sym_offset(offsets));
-    n_roffsets = length(rot_sym_offsets);
-    
-    % keep track of how many fprimes we are binning into a single
-    % rotationally-symmetric one
-    n_redundant_offsets = zeros(1,n_roffsets);
-    
-    for oi=1:n_roffsets
-        n_redundant_offsets(oi) = sum(sym_offset(offsets) == rot_sym_offsets(oi));
-    end
-    
-    %% Loop over bootstrapped spike data to get 0stim and fprime moments
-    
-    all_0stim = cell(params.bootstrap,1);
-    all_fprimes = cell(params.bootstrap, 1);
+    all_0stim = cell(params.bootstrap,1); % each entry is (n_momentdata x 1) array
+    all_fprimes = cell(params.bootstrap, 1); % each entry is (n_momentdata x n_offsets) matrix
     
     parfor boot=1:params.bootstrap
         if params.verbose && mod(boot,10)==0, fprintf('\tbootstrap loop %d/%d\n', boot, params.bootstrap); end
         
-        % load precomputed results if they exist,
+        % load precomputed bootstrapped data if they exist,
         % otherwise compute from scratch and save
         boot_file = fullfile('data', params.monkey, sprintf('boot_pop_%04d.mat', boot));
         if exist(boot_file, 'file')
             fprintf('loading %s\n', boot_file);
             precomputed = load(boot_file);
             bootpop = precomputed.pops_task;
-            % TODO - remove this bit
+            % TODO - remove this bit once all recomputed and saved
             if ~isfield(bootpop, 'anova')
                 [bootpop, bootfix] = Split_Conditions(bootpop, precomputed.pops_fix);
                 bootpop = Compute_Sensitivity_Anova(bootpop, bootfix);
@@ -107,14 +64,11 @@ if need_computation
         
         %% Compute "choice-triggered" or "zero-stimulus" moment with bootstrapped estimates
         
-        all_0stim{boot} = zeros(1,n_momentdata);
+        boot_0stim = cell(1,n_pops);
         
-        % loop over populations to fill in (flattened) all_0stim array, where now
-        % each entry corresponds to a neuron
-        start_idx = 1;
+        % loop over populations to fill in all_0stim array
         for p_idx=1:n_pops
             pop = bootpop(p_idx);
-            pairs = Good_Pairs(pop, params);
             
             % get moment (divided by sqrt(variances); this means we're looking
             % at correlations not covariances, etc)
@@ -148,90 +102,121 @@ if need_computation
                     Util.nancomoment(pop.spikeRates_stim0', params.moment, true, true, true, params.min_pairs, params.min_rates);
             end
             
-            end_idx = start_idx + length(pairs) - 1;
-            all_0stim{boot}(start_idx:end_idx) = spikes_moment(pairs);
-            start_idx = end_idx + 1;
+            boot_0stim{p_idx} = spikes_moment(:);
         end
         
+        all_0stim{boot} = vertcat(boot_0stim{:});
+        
         %% Compute f' moment at each of a range of offsets from the task
-        all_fprimes{boot} = zeros(n_momentdata, n_offsets);
-        for o_idx=1:n_offsets
-            
-            if params.verbose, fprintf('\t\t%d/%d\n', o_idx, n_offsets); end
-            offset = offsets(o_idx);
-            
-            start_idx = 1;
-            for p_idx=1:n_pops
-                pop = bootpop(p_idx);
-                popsize = length(pop.cellnos);
-                pairs = Good_Pairs(pop, params);
+        all_fprimes{boot} = cell(n_pops,1);
+        for p_idx=1:n_pops
+            pop = bootpop(p_idx);
+            % create n_moments_this_pop x n_offsets array (to be 'vertcat'd later)
+            fprime_moment_each_offset = zeros(length(pop.cellnos)^params.moment, params.num_offsets);
+            for o_idx=1:params.num_offsets
                 
-                fprime_at_offset = arrayfun(@(n_idx) TuningCurve_fPrime_At(pop.(params.fprime_curve){n_idx}, pop.Orientation + offset), 1:popsize);
+                if params.verbose, fprintf('\t\t%d/%d\n', o_idx, params.num_offsets); end
+                offset = offsets(o_idx);
                 
-                if params.moment == 1
-                    fprime_moment = fprime_at_offset;
-                else
-                    [fprime_moment, ~, ~, ~] = Util.nancomoment(fprime_at_offset, params.moment, true, false);
-                end
+                fprime_at_offset = cellfun(@(curve) TuningCurve_fPrime_At(curve, pop.Orientation+offset), pop.(params.fprime_curve));
+                
+                fprime_moment = Util.ndouter(fprime_at_offset, params.moment);
                 
                 neuron_variances = nanvar(pop.spikeRates_stim0',1);
                 fprime_moment = fprime_moment ./ reshape(Util.ndouter(sqrt(neuron_variances), params.moment), size(fprime_moment));
                 
-                end_idx = start_idx + length(pairs) - 1;
-                all_fprimes{boot}(start_idx:end_idx, o_idx) = fprime_moment(pairs);
-                start_idx = end_idx + 1;
+                fprime_moment_each_offset(:,o_idx) = fprime_moment(:);
             end
+            all_fprimes{boot}{p_idx} = fprime_moment_each_offset;
         end
+        all_fprimes{boot} = vertcat(all_fprimes{boot}{:});
     end
     
-    % collapse together data across bootstrapped trials
-    all_0stim = vertcat(all_0stim{:});
-    all_fprimes = cat(3, all_fprimes{:});
-    
-    %% get correlation of (noise_moment vs f' moment) at each 'task offset'
-    if params.verbose, fprintf('computing correlations..\n'); end
-    
-    % both all_correlations and all_pvalues will turn into (boot x rot_sym_offsets)
-    % arrays after concatenation.
-    all_correlations = cell(params.bootstrap, 1);
-    all_pvalues = cell(params.bootstrap, 1);
-    
-    parfor boot=1:params.bootstrap
-        if params.verbose && mod(boot,10)==0, fprintf('\tboot %d/%d\n', boot, params.bootstrap); end
-        all_correlations{boot} = zeros(1, n_roffsets);
-        boot_0stim = all_0stim(boot,:)';
-        boot_fprimes = squeeze(all_fprimes(:,:,boot));
-        for o_idx=1:n_roffsets
-            if params.verbose, fprintf('\t\t%d/%d\n', o_idx, n_roffsets); end
-            
-            % collapse together rotationally symmetric offsets
-            fprimes_this_offset = boot_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
-            % ... into a single column vector
-            fprimes_this_offset = fprimes_this_offset(:);
-            
-            % replicate the 0stim data as many times as there are redundant
-            % offsets at o_idx (so that fprimes_this_offset and
-            % extended_0stim have the same number of elements and can be
-            % correlated)
-            extended_0stim = repmat(boot_0stim, n_redundant_offsets(o_idx), 1);
-            
-            valid_indices = ~isnan(fprimes_this_offset) & ~isnan(extended_0stim);
-            [r,p] = corr(fprimes_this_offset(valid_indices), extended_0stim(valid_indices), 'type', params.corr_type);
-            all_correlations{boot}(o_idx) = r;
-            all_pvalues{boot}(o_idx) = p;
-        end
-    end
-    
-    all_correlations = vertcat(all_correlations{:});
-    all_pvalues = vertcat(all_pvalues{:});
-    
-    %% SAVE RESULTS if specified
-    if nargin > 1
-        fprintf('saving to %s\n', memo_file);
-        save(memo_file, 'params', 'all_fprimes', 'all_0stim', 'all_correlations', 'all_pvalues', 'rot_sym_offsets', 'offsets', 'n_redundant_offsets', 'n_offsets', 'n_roffsets');
-    end
-
 end
+
+%% SAVE RESULTS if specified
+if nargin > 1
+    fprintf('saving to %s\n', memo_file);
+    save(memo_file, 'all_fprimes', 'all_0stim');
+end
+
+%% set up task offsets, collapsing rotationally symmetric data together (only need 0:45)
+    
+if params.collapse_offsets
+    % [0,45] stays [0,45]
+    % [0,-45] flips and becomes [0,45]
+    % [45,90] is really getting "closer" to the task, so it's 90-[90:45]
+    sym_offset = @(o) min(abs(o), 90-abs(o));
+else
+    sym_offset = @(o) o;
+end
+
+rot_sym_offsets = unique(sym_offset(offsets));
+n_roffsets = length(rot_sym_offsets);
+
+% keep track of how many fprimes we are binning into a single
+% rotationally-symmetric one
+n_redundant_offsets = zeros(1,n_roffsets);
+
+for oi=1:n_roffsets
+    n_redundant_offsets(oi) = sum(sym_offset(offsets) == rot_sym_offsets(oi));
+end
+
+%% Apply 'filters' to see which neurons/pairs should be kept
+%but note that min_pairs and min_rates were already taken care of and can't
+%easily be moved to this part of the analysis as post-hoc filters
+
+filtered_indices = cell(n_pops,1);
+for p_idx=1:n_pops
+    pop = pops_task(p_idx);
+    % the Good_Pairs function returns the indices that pass the
+    % 'significance' and 'uniqueness' tests as specified in params
+    idxs = Good_Pairs(pop, params);
+    filtered_indices{p_idx} = false(length(pop.cellnos)^params.moment,1);
+    filtered_indices{p_idx}(idxs) = true;
+end
+filtered_indices = vertcat(filtered_indices{:});
+
+%% get correlation of (noise_moment vs f' moment) at each 'task offset'
+% and taking into account which 'filters' should be applied
+
+if params.verbose, fprintf('computing correlations..\n'); end
+
+% both all_correlations and all_pvalues will turn into (boot x rot_sym_offsets)
+% arrays after concatenation.
+all_correlations = cell(params.bootstrap, 1);
+all_pvalues = cell(params.bootstrap, 1);
+
+parfor boot=1:params.bootstrap
+    if params.verbose && mod(boot,10)==0, fprintf('\tboot %d/%d\n', boot, params.bootstrap); end
+    all_correlations{boot} = zeros(1, n_roffsets);
+    boot_0stim = all_0stim{boot}; % (n_momentdata x 1) array
+    boot_fprimes = all_fprimes{boot}; % (n_momentdata x n_offsets) matrix
+    for o_idx=1:n_roffsets
+        if params.verbose, fprintf('\t\t%d/%d\n', o_idx, n_roffsets); end
+        
+        % collapse together rotationally symmetric offsets
+        collapse_indices = sym_offset(offsets)==rot_sym_offsets(o_idx);
+        fprimes_this_offset = boot_fprimes(filtered_indices, collapse_indices);
+        % ... into a single column vector
+        fprimes_this_offset = fprimes_this_offset(:);
+        
+        % replicate the 0stim data as many times as there are redundant
+        % offsets at o_idx (so that fprimes_this_offset and
+        % extended_0stim have the same number of elements and can be
+        % correlated)
+        extended_0stim = repmat(boot_0stim(filtered_indices), n_redundant_offsets(o_idx), 1);
+        
+        % further reduce data - don't correlate NaN values
+        valid_indices = ~isnan(fprimes_this_offset) & ~isnan(extended_0stim);
+        [r,p] = corr(fprimes_this_offset(valid_indices), extended_0stim(valid_indices), 'type', params.corr_type);
+        all_correlations{boot}(o_idx) = r;
+        all_pvalues{boot}(o_idx) = p;
+    end
+end
+
+all_correlations = vertcat(all_correlations{:});
+all_pvalues = vertcat(all_pvalues{:});
     
 % compute variance of 0stim moment across bootstrapping
 var_0stim = nanvar(all_0stim, 1, 1)';
