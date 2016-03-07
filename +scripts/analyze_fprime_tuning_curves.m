@@ -113,6 +113,17 @@ if need_computation
             if params.moment == 1
                 % use "choice-triggered" direction for first moment
                 spikes_moment = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
+                % ---
+                % bugfix: what is called 'A' or 'B' is not consistently the positive
+                % direction of the stimulus axis 's'. This causes a large fraction of
+                % the choice_triggered_delta_means to have the wrong sign, which
+                % completely ruins the correlation.. We correct for it here.
+                signal_trials = pop.condVec > 0;
+                % dot product between 'correctChoice' and 'sign(condVec)' will be
+                % positive if they align and negative if they don't.
+                choice_sign = sign(pop.correctChoice(signal_trials)' * sign(pop.condVec(signal_trials)));
+                % ---
+                spikes_moment = choice_sign * spikes_moment;
                 spikes_moment = spikes_moment ./ sqrt(nanvar(pop.spikeRates_stim0', 1));
                 % remove data where min_rates not satisfied
                 below_rate_threshold = nanmean(pop.spikeRates_stim0,2)' <= params.min_rates;
