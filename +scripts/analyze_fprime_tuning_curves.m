@@ -228,8 +228,7 @@ end
 % compute variance of 0stim moment across bootstrapping
 var_0stim = nanvar(all_0stim, 1, 1)';
     
-% in correlations, fprime values will be weighted by their inverse
-% variance across bootstrapping
+% likewise get variance across bootstrapping of fprime moments
 var_fprimes= squeeze(nanvar(all_fprimes, 1, 3));
     
 % get mean and confidence intervals on correlations
@@ -237,61 +236,67 @@ var_fprimes= squeeze(nanvar(all_fprimes, 1, 3));
 plus_corr = hi_corr - mean_corr;
 minus_corr = mean_corr - lo_corr;
 
-%% PLOT I: scatter and correlation when f' aligned with task
-if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
+% get mean and confidence intervals on p-values
+[mean_pv, lo_pv, hi_pv] = Util.meanci(all_pvalues, params.confidence);
+plus_pv = hi_pv - mean_pv;
+minus_pv = mean_pv - lo_pv;
 
-o_idx = rot_sym_offsets==0;
-            
-% collapse together rotationally symmetric offsets
-fprimes_this_offset = nanmean(all_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx),:),3);
-var_fprimes_this_offset = var_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
-% ... into a single column vector
-fprimes_this_offset = fprimes_this_offset(:);
-var_fprimes_this_offset = var_fprimes_this_offset(:);
-
-extended_0stim = repmat(nanmean(all_0stim), 1, n_redundant_offsets(o_idx));
-extended_var0stim = repmat(var_0stim, n_redundant_offsets(o_idx), 1);
-extended_colors = repmat(neuroncolors, n_redundant_offsets(o_idx), 1);
-
-figure();
-Vis.scatterr(fprimes_this_offset, extended_0stim, ...
-    var_fprimes_this_offset, extended_var0stim, 15, extended_colors);
-title(sprintf('Corr. noise moment vs task f''\nr=%.3f +/- (%.3e/%.3e)', ...
-    mean_corr(o_idx), plus_corr(o_idx), minus_corr(o_idx)));
-xlabel('f'' aligned to task')
-ylabel('choice-triggered diff means')
-
-figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
-
-savefig(fullfile(figpath, 'scatter_aligned.fig'));
-
-%% PLOT II: scatter and correlation when f' 45 degrees off task
-if params.verbose, fprintf('Second plot: f'' ortho vs CT moment\n'); end
-
-o_idx = rot_sym_offsets==45;
-
-% collapse together rotationally symmetric offsets
-fprimes_this_offset = nanmean(all_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx),:),3);
-var_fprimes_this_offset = var_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
-% ... into a single column vector
-fprimes_this_offset = fprimes_this_offset(:);
-var_fprimes_this_offset = var_fprimes_this_offset(:);
-
-extended_0stim = repmat(nanmean(all_0stim), 1, n_redundant_offsets(o_idx));
-extended_var0stim = repmat(var_0stim, n_redundant_offsets(o_idx), 1);
-extended_colors = repmat(neuroncolors, n_redundant_offsets(o_idx), 1);
-
-figure();
-Vis.scatterr(fprimes_this_offset, extended_0stim, ...
-    var_fprimes_this_offset, extended_var0stim, 15, extended_colors);
-title(sprintf('Corr. noise moment vs off-task f''\nr=%.3f +/- (%.3e/%.3e)', ...
-    mean_corr(o_idx), plus_corr(o_idx), minus_corr(o_idx)));
-xlabel('f'' aligned 45 degrees off task')
-ylabel('choice-triggered diff means')
-
-savefig(fullfile(figpath, 'scatter_offset45.fig'));
-
-%% PLOT III: interpolate (I) and (II): correlation as a function of distance off task
+%% SCATTER PLOTS - commented out b/c redundant with analyze_scatter_moments
+%%% PLOT I: scatter and correlation when f' aligned with task
+% if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
+% 
+% o_idx = rot_sym_offsets==0;
+%             
+% % collapse together rotationally symmetric offsets
+% fprimes_this_offset = nanmean(all_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx),:),3);
+% var_fprimes_this_offset = var_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
+% % ... into a single column vector
+% fprimes_this_offset = fprimes_this_offset(:);
+% var_fprimes_this_offset = var_fprimes_this_offset(:);
+% 
+% extended_0stim = repmat(nanmean(all_0stim), 1, n_redundant_offsets(o_idx));
+% extended_var0stim = repmat(var_0stim, n_redundant_offsets(o_idx), 1);
+% extended_colors = repmat(neuroncolors, n_redundant_offsets(o_idx), 1);
+% 
+% figure();
+% Vis.scatterr(fprimes_this_offset, extended_0stim, ...
+%     var_fprimes_this_offset, extended_var0stim, 15, extended_colors);
+% title(sprintf('Corr. noise moment vs task f''\nr=%.3f +/- (%.3e/%.3e)', ...
+%     mean_corr(o_idx), plus_corr(o_idx), minus_corr(o_idx)));
+% xlabel('f'' aligned to task')
+% ylabel('choice-triggered diff means')
+% 
+% figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
+% 
+% savefig(fullfile(figpath, 'scatter_aligned.fig'));
+% 
+% %% PLOT II: scatter and correlation when f' 45 degrees off task
+% if params.verbose, fprintf('Second plot: f'' ortho vs CT moment\n'); end
+% 
+% o_idx = rot_sym_offsets==45;
+% 
+% % collapse together rotationally symmetric offsets
+% fprimes_this_offset = nanmean(all_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx),:),3);
+% var_fprimes_this_offset = var_fprimes(:, sym_offset(offsets)==rot_sym_offsets(o_idx));
+% % ... into a single column vector
+% fprimes_this_offset = fprimes_this_offset(:);
+% var_fprimes_this_offset = var_fprimes_this_offset(:);
+% 
+% extended_0stim = repmat(nanmean(all_0stim), 1, n_redundant_offsets(o_idx));
+% extended_var0stim = repmat(var_0stim, n_redundant_offsets(o_idx), 1);
+% extended_colors = repmat(neuroncolors, n_redundant_offsets(o_idx), 1);
+% 
+% figure();
+% Vis.scatterr(fprimes_this_offset, extended_0stim, ...
+%     var_fprimes_this_offset, extended_var0stim, 15, extended_colors);
+% title(sprintf('Corr. noise moment vs off-task f''\nr=%.3f +/- (%.3e/%.3e)', ...
+%     mean_corr(o_idx), plus_corr(o_idx), minus_corr(o_idx)));
+% xlabel('f'' aligned 45 degrees off task')
+% ylabel('choice-triggered diff means')
+% 
+% savefig(fullfile(figpath, 'scatter_offset45.fig'));
+% 
+%% PLOT III: correlation as a function of distance off task
 if params.verbose, fprintf('Third plot: correlation as fn of offset\n'); end
 
 figure();
@@ -306,11 +311,13 @@ savefig(fullfile(figpath, 'corr_vs_offset.fig'));
 if params.verbose, fprintf('Fourth plot: significance\n'); end
 
 figure();
-mean_pvalue = mean(all_pvalues);
-semilogy(rot_sym_offsets, mean_pvalue, '-r', 'LineWidth', 2);
-title(sprintf('p-value as function of task offset'));
+Vis.boundedline(rot_sym_offsets, mean_corr, [minus_corr', plus_corr'], 'alpha');
+set(gca, 'YScale', 'log');
+title(sprintf('p-value of correlation as function of task offset'));
 xlabel('offset from trial alignment');
 ylabel('significance');
+
+fprintf('correlation significance (bootstrap 95%%) = %f +%f -%f\n', mean_pv(1), plus_pv(1), minus_pv(1));
 
 savefig(fullfile(figpath, 'significance.fig'));
 
