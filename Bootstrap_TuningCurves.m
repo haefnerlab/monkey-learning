@@ -27,5 +27,6 @@ end
 [boot_pops_task, boot_pops_fix] = Split_Conditions(boot_pops_task, boot_pops_fix);
 boot_pops_task = Compute_fPrime_bestfit( boot_pops_task, boot_pops_fix, true );
 boot_pops_task = Compute_fPrime_fixation_means( boot_pops_task, boot_pops_fix, true);
+boot_pops_task = Compute_Sensitivity_Anova(boot_pops_task, boot_pops_fix);
 
 end
