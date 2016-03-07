@@ -27,7 +27,16 @@ i = 1;
 hold on;
 for pi=1:length(pops_task)
     pop = pops_task(pi);
+    % bugfix: what is called 'A' or 'B' is not consistently the positive
+    % direction of the stimulus axis 's'. This causes a large fraction of
+    % the choice_triggered_delta_means to have the wrong sign, which
+    % completely ruins the correlation.. We correct for it here.
+    signal_trials = pop.condVec > 0;
+    % dot product between 'correctChoice' and 'sign(condVec)' will be
+    % positive if they align and negative if they don't.
+    choice_sign = sign(pop.correctChoice(signal_trials)' * sign(pop.condVec(signal_trials)));
     choice_triggered_delta_means = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
+    choice_triggered_delta_means = choice_sign * choice_triggered_delta_means;
     % normalize by standard deviation
     variances = nanvar(pop.spikeRates_stim0,1,2)';
     choice_triggered_delta_means = choice_triggered_delta_means ./ sqrt(variances);
