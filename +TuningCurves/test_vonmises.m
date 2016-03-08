@@ -39,30 +39,30 @@ for pi=length(pops_fix):-1:1
     orientations = pop.condVec(:,orientation_condition);
     for ni=1:length(pop.cellnos)
         fprintf('%d/%d\n', j, n_neurons);
-        rates = pop.spikeRates(ni,:);
+        counts = pop.spikeCounts(ni,:);
         
-        if numel(rates) == numel(orientations)
+        if numel(counts) == numel(orientations)
             
-            [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, rates);
+            [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, counts);
             disp(best);
             disp(best_map);
             disp(worst);
             disp(worst_map);
             
             % scatter plot with tuning curve overlayed
-            scatter(orientations, rates);
+            scatter(orientations, counts);
             hold on;
             plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
             plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
             % plot where we thing preferred orientation is (black)
-            plot([best(4) best(4)], [0, max(rates)], '--k')
+            plot([best(4) best(4)], [0, max(counts)], '--k')
             % neurons already have some estimated tuning from A.B. et al
             % (green)
             et = pops_task(pi).tuning(ni);
             if ~isnan(et)
-                plot([et et], [0, max(rates)], '--g')
+                plot([et et], [0, max(counts)], '--g')
             end
-            axis([0,180,0,max(rates)+10]);
+            axis([0,180,0,max(counts)+10]);
             hold off;
             title(sprintf('Population %d Neuron %d', pi, ni));
             drawnow; pause;
