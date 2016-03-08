@@ -2,6 +2,7 @@ function pairs = Good_Pairs(pop, params)
 %GOOD_PAIRS finds indexes (i,j,k,..) where
 % 1) they form a unique set (i.e. 1,2 and 2,1 not both included) and
 % 2) all neurons i, j, and k have well-defined tuning.
+% 3) each neuron has a mean firing rate above params.min_rates
 %
 %A neuron is 'well tuned' if it has significant variation in the fixation
 %condition as measured by a p-value from 'anova' or 'fprime_pvalue'. Which
@@ -26,7 +27,18 @@ well_tuned = (pop.(params.exclusion_rule) < params.exclusion_threshold);
 % product to n-dimensions (and there are 'moment' dimensions here)
 well_tuned_idxs = find(Util.ndouter(well_tuned, params.moment));
 
+% part 3: keep only neurons with mean firing rate above the specified
+% minimum
+strong_evoked = nanmean(pop.spikeRates, 2) >= params.min_rates;
+
+% like well_tuned, now convert this to indices into the nd array
+strong_evoked_idxs = find(Util.ndouter(strong_evoked, params.moment));
+
 % end result is the intersection of the two sets of indexes
 pairs = intersect(unq_pairs, well_tuned_idxs);
+pairs = intersect(pairs, strong_evoked_idxs);
+
+% ensure it comes out as a row vector of indices
+pairs = reshape(pairs, 1, length(pairs));
 
 end

@@ -99,7 +99,7 @@ if need_computation
             else
                 % for 2nd and higher even moments, get stats of all _stim0 spikes
                 [spikes_moment, ~, ~, ~] = ...
-                    Util.nancomoment(pop.spikeRates_stim0', params.moment, true, true, true, params.min_pairs, params.min_rates);
+                    Util.nancomoment(pop.spikeRates_stim0', params.moment, true, true, true, params.min_pairs);
             end
             
             boot_0stim{p_idx} = spikes_moment(:);

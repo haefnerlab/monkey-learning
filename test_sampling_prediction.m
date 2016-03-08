@@ -36,7 +36,7 @@ colors = hsv(length(pops_task));
 for p_idx = 1:length(pops_task)
     pop = pops_task(p_idx);
     n_neurons = length(pop.cellnos);
-    [noise_correlations,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, true, true, params.min_pairs, params.min_rates);
+    [noise_correlations,~,indices] = Util.nancomoment(pop.spikeCounts_stim0', 2, false, true, true, params.min_pairs);
     correlations = noise_correlations(indices);
     variances = nanvar(pop.spikeCounts_stim0',1);
     
