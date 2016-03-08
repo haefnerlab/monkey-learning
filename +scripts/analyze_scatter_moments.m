@@ -9,8 +9,15 @@ function analyze_scatter_moments( params, figpath )
 
 %% Load and preprocess
 [pops_task, pops_fix, full_pops_task, full_pops_fix] = Load_Preprocess(params);
+n_pops = length(pops_task);
 
-colors = hsv(length(pops_task));
+% color as a function of orienation (hue = orientation, mapped to rgb)
+sat = 1; val = 1;
+colors = zeros(n_pops,3);
+for p_idx=1:n_pops
+    hue = mod(pops_task(p_idx).Orientation, 90) / 90;
+    colors(p_idx,:) = hsv2rgb([hue,sat,val]);
+end
 
 %% compare first moment (diff in means)
 
@@ -18,7 +25,6 @@ figure();
 params.moment = 1;
 
 % concatenation of all fprimes and CTdMs for getting correlations
-n_pops = length(pops_task);
 all_fprimes = cell(1,n_pops);
 all_ctdms   = cell(1,n_pops);
 
@@ -113,5 +119,18 @@ ylabel('noise correlations');
 if nargin > 1
     savefig(fullfile(figpath, 'scatter2.fig'));
 end
+
+%% plot colored orientations key
+
+figure();
+os = linspace(0,2*pi,1000);
+c = cos(os);
+s = sin(os);
+hsv = [mod(2*os'/pi,1), ones(1000,1), ones(1000,1)];
+col = hsv2rgb(hsv);
+scatter(c,s,15,col,'filled');
+xlim([-2,2]);
+ylim([-2,2]);
+axis square;
     
 end
