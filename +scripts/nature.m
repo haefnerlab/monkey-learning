@@ -82,9 +82,7 @@ scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offse
 close all;
 
 % f' linearity
-test_fprime_methods;
-fprintf('save %s fprime plots manually. (todo: automate)\n', monkey);
-pause;
+test_fprime_methods(params, fullfile(savedir, monkey));
 
 close all;
 
