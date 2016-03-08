@@ -38,7 +38,7 @@ for p_idx=1:n_pops
     % normalize by standard deviation
     variances = nanvar(pop.spikeRates_stim0,1,2)';
     choice_triggered_delta_means = choice_triggered_delta_means ./ sqrt(variances);
-    fprime = pop.fprime_stimulus_mean ./ sqrt(variances);
+    fprime = pop.(params.scatter_fprime) ./ sqrt(variances);
     % FILTER for well-tuned neurons and minimum rate
     selections = Good_Pairs(pop, params);
     fprime = fprime(selections);
@@ -86,7 +86,7 @@ for p_idx=1:n_pops
     
     variances = nanvar(pop.spikeRates_stim0,1,2);
     sigma_ij = sqrt(variances * variances');
-    pop_fpfp = Util.ndouter(pop.fprime_stimulus_mean', 2) ./ sigma_ij;
+    pop_fpfp = Util.ndouter(pop.(params.scatter_fprime)', 2) ./ sigma_ij;
     selections = Good_Pairs(pop, params);
     % flatten to 1d array of pairwise stats
     pop_corrs = pop_corrs(selections);
