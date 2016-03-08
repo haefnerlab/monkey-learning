@@ -1,3 +1,4 @@
+function test_fprime_methods(params, figdir)
 % f-prime refers to the derivative of the tuning function of a neuron with
 % respect to the change in stimulus. We have two ways of computing it:
 %
@@ -13,13 +14,7 @@
 %
 % This script compares the different methods.
 
-clearvars -except pops_task pops_fix params; close all;
-
-if ~exist('params', 'var')
-    params = New_Parameters('monkey', 'lem');
-end
-
-[pops_task, pops_fix] = Load_Preprocess(params);
+[pops_task, ~] = Load_Preprocess(params);
 
 colors = hsv(length(pops_task));
 
@@ -47,6 +42,8 @@ fprintf('stimulus means -- linear fit:\tr=%f\n', r(2));
 
 [r,~] = corrcoef(all_fprimes_fixation_means, all_fprimes_bestfit);
 fprintf('linear fit -- von mises fit:\tr=%f\n', r(2));
+
+if nargin >= 2, savefig(fullfile(figdir, 'fprime_plotmatrix.fig')); end
 
 %% now make a bunch of plots showing how well the 'stimulus means' method fits the data
 
@@ -84,7 +81,13 @@ for p_idx=1:length(pops_task)
     end
 end
 
+if nargin >= 2, savefig(fullfile(figdir, 'fprime_fits.fig')); end
+
 figure();
 hist(rmse, 50);
 xlabel('rmse of f'' fit');
 ylabel('count');
+
+if nargin >= 2, savefig(fullfile(figdir, 'fprime_rmse.fig')); end
+
+end
