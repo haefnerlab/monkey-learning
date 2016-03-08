@@ -1,4 +1,4 @@
-% script to create figures
+function nature(m_idx)
 
 %% start by creating directories where figures will be saved
 
@@ -16,9 +16,7 @@ if ~exist(savedir, 'dir')
     end
 end
 
-%% do analysis for each monkey
-
-for m_idx=1:length(monkeys)
+if nargin < 1, m_idx = 1; end
     
     monkey = monkeys{m_idx};
     
