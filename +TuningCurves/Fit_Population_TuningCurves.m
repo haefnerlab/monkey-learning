@@ -18,7 +18,7 @@ for p_idx=1:length(populations_task)
     for n_idx=1:length(pfix.cellnos)
         fprintf('pop %d/%d neuron %d/%d\n', p_idx, length(populations_task), n_idx, length(pfix.cellnos));
         spikeCounts = pfix.spikeCounts(n_idx,:);
-        [model, curve] = TuningCurves.fitVonMises(orientations, spikeCounts, false);
+        [model, curve] = TuningCurves.fitVonMises(orientations, spikeCounts, false, 40, (pfix.trialDur-50)/1000);
         tuning_curves{n_idx} = curve;
         preferred_directions(n_idx) = model(4);
     end

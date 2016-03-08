@@ -5,7 +5,7 @@ function [ pops_task ] = Compute_Choice_Probabilities( pops_task, zscore )
 %choice probability indirectly measures how correlated a single neuron is
 %with the subject's *choice* at the end of the trial. It is measured during
 %zero-stimulus conditions. Specifically, it is the area under the roc curve
-%for spike counts to predict the choice
+%for spike rates to predict the choice
 
 if nargin < 2, zscore = false; end
 
@@ -19,7 +19,7 @@ n_neurons = length(pop.cellnos);
 
 stim0 = pop.condVec == 0;
 choices = pop.realChoice(stim0);
-spikes = pop.spikeCounts(:, stim0);
+rates = pop.spikeRates(:, stim0);
 pos = max(choices);
 
 % % TODO
@@ -37,12 +37,12 @@ pos = max(choices);
 
 pop.cp = zeros(1,n_neurons);
 for i=1:n_neurons
-    % manually handle spikeCounts NaN
-    valid = ~isnan(spikes(i,:));
+    % manually handle spikeRates NaN
+    valid = ~isnan(rates(i,:));
     if length(unique(choices(valid))) < 2
         pop.cp(i) = NaN;
     else
-        [~,~,~,auroc] = perfcurve(choices(valid), spikes(i,valid), pos);
+        [~,~,~,auroc] = perfcurve(choices(valid), rates(i,valid), pos);
         pop.cp(i) = auroc;
     end
 end

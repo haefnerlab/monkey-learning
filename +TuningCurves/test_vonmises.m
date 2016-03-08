@@ -39,36 +39,36 @@ for pi=length(pops_fix):-1:1
     orientations = pop.condVec(:,orientation_condition);
     for ni=1:length(pop.cellnos)
         fprintf('%d/%d\n', j, n_neurons);
-        counts = pop.spikeCounts(ni,:);
+        rates = pop.spikeRates(ni,:);
         
-        if numel(counts) == numel(orientations)
+        if numel(rates) == numel(orientations)
             
-            [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, counts);
+            [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, rates);
             disp(best);
             disp(best_map);
             disp(worst);
             disp(worst_map);
             
             % scatter plot with tuning curve overlayed
-            scatter(orientations, counts);
+            scatter(orientations, rates);
             hold on;
             plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
             plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
             % plot where we thing preferred orientation is (black)
-            plot([best(4) best(4)], [0, max(counts)], '--k')
+            plot([best(4) best(4)], [0, max(rates)], '--k')
             % neurons already have some estimated tuning from A.B. et al
             % (green)
             et = pops_task(pi).tuning(ni);
             if ~isnan(et)
-                plot([et et], [0, max(counts)], '--g')
+                plot([et et], [0, max(rates)], '--g')
             end
-            axis([0,180,0,max(counts)+10]);
+            axis([0,180,0,max(rates)+10]);
             hold off;
             title(sprintf('Population %d Neuron %d', pi, ni));
             drawnow; pause;
             
             %             amp(j) = best(2) * exp(best(3));
-            %             fve(j) = Util.Variance_Explained(counts, TuningCurves.vonMises(orientations, best));
+            %             fve(j) = Util.Variance_Explained(rates, TuningCurves.vonMises(orientations, best));
             %             tun(j) = pops_task(pi).tuning(ni);
             %             if isnan(fve(j))
             %                 keyboard
@@ -76,28 +76,28 @@ for pi=length(pops_fix):-1:1
             %             if (fve(j) < 0.2 && ~isnan(tun(j))) || isnan(tun(j))
             %                 % look at ones without VE but with tuning well-defined?
             %                 % scatter plot with tuning curve overlayed
-            %                 scatter(orientations, counts);
+            %                 scatter(orientations, rates);
             %                 hold on;
             %                 plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
             %                 plot(os, TuningCurves.vonMises(os, worst), 'LineStyle', '--');
             %                 % plot where we thing preferred orientation is (black)
-            %                 plot([best(4) best(4)], [0, max(counts)], '--k')
+            %                 plot([best(4) best(4)], [0, max(rates)], '--k')
             %                 % neurons already have some estimated tuning from A.B. et al
             %                 % (green)
             %                 et = pops_task(pi).tuning(ni);
             %                 if ~isnan(et)
-            %                     plot([et et], [0, max(counts)], '--g')
+            %                     plot([et et], [0, max(rates)], '--g')
             %                 else
-            %                     plot([best(4) best(4)], [0, max(counts)], '--r')
+            %                     plot([best(4) best(4)], [0, max(rates)], '--r')
             %                 end
-            %                 axis([0,180,0,max(counts)+10]);
+            %                 axis([0,180,0,max(rates)+10]);
             %                 hold off;
             %                 title(sprintf('Population %d Neuron %d', pi, ni));
             %                 drawnow; pause;
             %             end
             j = j+1;
         else
-            warning('#counts was not same as #orientations');
+            warning('#rates was not same as #orientations');
         end
     end
     fprintf('end of population %d\n', pi);

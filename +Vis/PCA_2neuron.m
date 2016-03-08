@@ -34,7 +34,7 @@ colors(nstim+2,:) = [0, 0.8, 1];
 % show zero-stimulus trials yellow and cyan (i.e. red/blue + some green)
 
 
-[eigenvectors, mean_vec, covariance, fig, handles] = Vis.PCA_Projection(pop.spikeCounts', classes, colors, sizes, fig);
+[eigenvectors, mean_vec, covariance, fig, handles] = Vis.PCA_Projection(pop.spikeRates', classes, colors, sizes, fig);
 set(handles(nstim+1:end), 'Marker', 'diamond');
 
 disp(mean_vec);

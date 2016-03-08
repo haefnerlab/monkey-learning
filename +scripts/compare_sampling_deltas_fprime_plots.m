@@ -5,7 +5,7 @@ ps = cell(4,3);
 
 for di=1:length(deltas)
     sim = sprintf('SIM_d%.3f_v1', deltas(di));
-    [c,p,o] = analyze_fprime_tuning_curves(New_Parameters('monkey', sim, 'bootstrap', 500), fullfile('data', sim, 'analyze_fprime_results.mat'));
+    [c,p,o] = analyze_task_offset(New_Parameters('monkey', sim, 'bootstrap', 500), fullfile('data', sim, 'analyze_fprime_results.mat'));
     [cs{di,:}] = Util.meanci(c);
     [ps{di,:}] = Util.meanci(p);
 end

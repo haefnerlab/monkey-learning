@@ -18,7 +18,7 @@ for di=1:length(deltas)
         [pops_task, pops_fix] = Match_Corresponding_Populations(pops_task, pops_fix); % should keep everything...
         
         disp('fitting');
-        pops_task = Split_Conditions( pops_task );
+        [pops_task, pops_fix] = Split_Conditions( pops_task, pops_fix );
         pops_task = Compute_fPrime_stimulus_means( pops_task );
         pops_task = Compute_fPrime_bestfit( pops_task, pops_fix );
         pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix );

@@ -8,7 +8,7 @@ image_total = zeros(180);
 counts_total = zeros(180);
 
 monkeys = {'lem', 'jbe'};
-stim_conditions = {'spikeCounts_stim0', 'spikeCounts_stim0A', 'spikeCounts_stim0B'};
+stim_conditions = {'spikeRates_stim0', 'spikeRates_stim0A', 'spikeRates_stim0B'};
 
 figure();
 

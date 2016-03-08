@@ -34,17 +34,17 @@ for i=1:nvotes
     %   condVec column. Find which one is 'orientation'.
     orientation_condition = find(strcmp('orientation', pop.condVecLabel));
     orientations = pop.condVec(:,orientation_condition);
-    counts = pop.spikeCounts(idxs(2),:);
+    rates = pop.spikeRates(idxs(2),:);
 
     % Get a single randomly-initialized ML Fit (we want overfitting here
     % occasionally)
-    [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, counts, false, 1);
+    [best, curve, best_map, worst, worst_map] = TuningCurves.fitVonMises(orientations, rates, false, 1);
 
     % scatter plot with tuning curve overlayed
-    scatter(orientations, counts);
+    scatter(orientations, rates);
     hold on;
     plot(os, TuningCurves.vonMises(os, best), 'LineWidth', 2);
-    axis([0,180,0,max(counts)+10]);
+    axis([0,180,0,max(rates)+10]);
     hold off;
     title(sprintf('Population %d Neuron %d', idxs(1), idxs(2)));
     

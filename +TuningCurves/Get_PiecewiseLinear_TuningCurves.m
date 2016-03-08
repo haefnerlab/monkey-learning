@@ -12,7 +12,7 @@ for p_idx=1:length(pops_task)
     usable_trials = ~isinf(fixation_orientations) & ~isnan(fixation_orientations);
     fixation_orientations = fixation_orientations(usable_trials);
     fixation_orientations = mod(fixation_orientations, 180);
-    counts = pf.spikeCounts(:,usable_trials);
+    rates = pf.spikeRates(:,usable_trials);
     
     % we make the tuning curve periodic by having 0 and 180 the same and by
     % using mod(o,180) in the anonymous function evaluation
@@ -22,9 +22,9 @@ for p_idx=1:length(pops_task)
     curves = cell(1,n_neurons);
     
     for n_idx=n_neurons:-1:1
-        spikeCount_means = arrayfun(@(o) nanmean(counts(n_idx, fixation_orientations == mod(o,180))), unique_orientations);
+        spikeRate_means = arrayfun(@(o) nanmean(rates(n_idx, fixation_orientations == mod(o,180))), unique_orientations);
         % use linear 'interp1' to interpolate
-        curve = @(o) interp1(unique_orientations, spikeCount_means, mod(o,180), 'linear');
+        curve = @(o) interp1(unique_orientations, spikeRate_means, mod(o,180), 'linear');
         curves{n_idx} = curve;
     end
     

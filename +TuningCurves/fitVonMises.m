@@ -1,26 +1,22 @@
-function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, use_map, n_init )
+function [ best_params, curve, best_map, worst_params, worst_map ] = fitVonMises( orientations, spikeCounts, use_map, n_init, trialDurSecs )
 %FITVONMISES ML or MAP fit a von Mises tuning curve (see vonMises()) to
-% (orientation,count) data. Assumed poisson variability and some
+% (orientation,rate) data. Assumed poisson variability and some
 % mostly-arbitrary priors on parameters
 %
 % inputs:
 % - orientations: vector of orientations (i.e. stimuli)
-% - spikeCounts: vector of spike counts of same length as orientations
+% - spikeRates: vector of spike rates of same length as orientations
 %
 % return values:
 % -  best_params: struct with r_0, r_max, k, theta_pref that define the curve
 % - curve: a function handle where curve(orientation) gives our predicted
 %          value
 % - quality: log-posterior of data with MAP fit of Poisson distributed
-%            counts
+%            rates
 
-if nargin < 3
-    use_map = true;
-end
-
-if nargin < 4
-    n_init = 20;
-end
+if nargin < 3, use_map = true; end
+if nargin < 4, n_init = 20; end
+if nargin < 5, trialDurSecs = 1; end
 
 N = numel(spikeCounts);
 
@@ -93,19 +89,21 @@ worst_params = optim_params(worst_idx, :);
 
 % we were minimizing negative log likelihood. max likelihood (and the
 % corresponding value) is negative of the minimized fn at the solution
-curve = @(o) TuningCurves.vonMises(o, best_params);
+% 'curve' is a function that takes an orientation and returns a spike
+% *rate* (wherease ML fit was to counts with Poisson distribution)
+curve = @(o) TuningCurves.vonMises(o, best_params) / trialDurSecs;
 
 end
 
-function ll = log_likelihood(o, c, params)
-% poisson-likelihood of seeing (orientation o, count c) pair under given
+function ll = log_likelihood(o, r, params)
+% poisson-likelihood of seeing (orientation o, rate r) pair under given
 % parameterization of vonMises
 
 dist_mean = TuningCurves.vonMises(o, params);
 
 % Poisson = lambda^k e^-lambda / k!
 % so, log Poisson = k log(lambda) - lambda - log(k!)
-% where k is our count, and lambda is the mean value as expected from VM
-ll = c .* log(dist_mean) - dist_mean - log(factorial(c));
+% where k is our rate, and lambda is the mean value as expected from VM
+ll = r .* log(dist_mean) - dist_mean - log(factorial(r));
 
 end
