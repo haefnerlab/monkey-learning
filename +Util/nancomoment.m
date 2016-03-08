@@ -1,18 +1,17 @@
-function [ output, counts, indices, all_indices ] = nancomoment( X, order, symmetries, sub_mean, norm_variance, minimum_count, minimum_value )
+function [ output, counts, indices, all_indices ] = nancomoment( X, order, symmetries, sub_mean, norm_variance, minimum_count )
 %NANCOMOMENT get the order-th co-moment of X, ignoring NaN values, where each
 % column of X is a variable and each row an observation
 %
 % output is an ndarray with 'order' dimensions, each of size #variables.
 %
-% [output, counts, indices] = nancomoment( X, order, [symmetries, [norm_variance, [minimum_count, [minimum_value]]]] )
+% [output, counts, indices] = nancomoment( X, order, [symmetries, [norm_variance, [minimum_count]]] )
 %
 % output[i,j,k,...] is the expected (i.e. mean) value of
 %   (X(:,i)-u(i))*(X(:,j)-u(j))*(X(:,k)-u(k))*...
 % where 'u' is the mean of each variable, and we discard any (i,j,k,...)
-% pairs where one or more of the measurements is NaN, and the mean of the
-% measurements is above minimum_value. If norm_variance is true, the output
-% is divided by sqrt(var(i)*var(j)*var(k)*...) (i.e. in moment=2 case, this
-% gives correlation rather than covariance)
+% pairs where one or more of the measurements is NaN. If norm_variance is 
+% true, the output is divided by sqrt(var(i)*var(j)*var(k)*...) (i.e. in 
+% moment=2 case, this gives correlation rather than covariance)
 %
 % counts[i,j,k,...] is the number of non-nan observation involving i,j, and
 % k. Where counts is less than minimum_count, output is NaN
@@ -31,11 +30,8 @@ if nargin < 3, symmetries=false; end
 if nargin < 4, sub_mean=true; end
 if nargin < 5, norm_variance=false; end
 if nargin < 6, minimum_count=1; end
-if nargin < 7, minimum_value=-inf; end
 
 [N,M] = size(X);
-
-Xorig = X;
 
 % subtract mean to get moment around the center
 if sub_mean
@@ -72,12 +68,6 @@ else
         
         % find which indices are not NaN for all vecs across observations
         all_valid_observations = all(~isnan(vecs), 2);
-        
-        % also only keep those where the mean (across vecs) is >
-        % minimum_value
-        % TODO - allow geometric mean in params
-        trial_means = mean(Xorig(:,idxs), 2);
-        all_valid_observations = all_valid_observations & trial_means > minimum_value;
         
         % count how many data points survived the not-nan and min-value
         % filters
