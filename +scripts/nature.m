@@ -40,8 +40,8 @@ for m_idx=1:length(monkeys)
     params.exclusion_rule = 'fprime_pvalue';
     scripts.analyze_scatter_moments(params, fullfile(savedir, monkey, 'reject fprime'));
     % scatter moments - keep all
-    % params.exclusion_threshold = inf;
-    % scripts.analyze_scatter_moments(params, fullfile(savedir, monkey, 'keep all'));
+    params.exclusion_threshold = inf;
+    scripts.analyze_scatter_moments(params, fullfile(savedir, monkey, 'keep all'));
     
     close all;
     
