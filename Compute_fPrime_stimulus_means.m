@@ -25,7 +25,7 @@ for n_idx=1:length(pop.cellnos)
         'linear', 'tstat');
     % linear fit with r(s) = stats.beta(2)*s + stats.beta(1)
     pop.fprime_stimulus_mean(n_idx) = stats.tstat.beta(2);
-    pop.fprime_pvalue = stats.tstat.pval(2);
+    pop.fprime_pvalue(n_idx) = stats.tstat.pval(2);
 end
 
 end
