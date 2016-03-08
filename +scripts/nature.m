@@ -86,7 +86,7 @@ if any(strcmpi('rotated', plots))
     params.collapse_offsets = true;
     params.exclusion_rule = 'anova';
     params.exclusion_threshold = 0.05;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject fprime', 'collapsed'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject anova', 'collapsed'));
     % rotated task - 2nd moment - collapsed orientations - fprime rejection rule
     params.exclusion_rule = 'fprime_pvalue';
     scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject fprime', 'collapsed'));
