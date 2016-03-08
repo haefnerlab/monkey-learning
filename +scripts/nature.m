@@ -6,13 +6,12 @@ monkeys = {'both', 'lem', 'jbe'};
 conditions = {'reject anova', 'reject fprime', 'keep all'};
 
 savedir = 'paper figures';
-if ~exist(savedir, 'dir')
-    mkdir(savedir);
-    
-    for m_idx = 1:length(monkeys)
-        for c_idx = 1:length(conditions)
-            mkdir(fullfile(savedir, monkeys{m_idx}, conditions{c_idx}));
-        end
+if ~exist(savedir, 'dir'), mkdir(savedir); end
+
+for m_idx = 1:length(monkeys)
+    for c_idx = 1:length(conditions)
+        newdir = fullfile(savedir, monkeys{m_idx}, conditions{c_idx});
+        if ~exist(newdir, 'dir'), mkdir(newdir); end
     end
 end
 
