@@ -33,18 +33,33 @@ if nargin < 5, norm_variance=false; end
 if nargin < 6, minimum_count=1; end
 if nargin < 7, minimum_value=-inf; end
 
-stddevs = sqrt(nanvar(X,1));
-means = nanmean(X,1);
+[N,M] = size(X);
+
+Xorig = X;
+
+% subtract mean to get moment around the center
+if sub_mean
+    means = nanmean(X,1);
+    X = X - repmat(means, N, 1);
+end
+
+% normalize X(:,i) by sqrt(var i)
+if norm_variance
+    stddevs = sqrt(nanvar(X,1));
+    X = X ./ repmat(stddevs, N, 1);
+end
 
 if order == 1
+    if sub_mean, warning('first order moment with sub_mean will be all zeros!'); end
     output = nanmean(X, 1); % built-in function is faster for means
 else
-    osize = size(X,2) * ones(1, order);
+    osize = M * ones(1, order);
     nddots = zeros(osize);
     counts = zeros(osize);
     
+    % determine which indices into osize will contain usable values
     all_indices = 1:numel(nddots);
-    if symmetries, all_indices = find(Util.ndtriu(size(nddots))); end
+    if symmetries, all_indices = find(Util.ndtriu(osize)); end
     
     % ind2sub uses varargout, which we will capture in this cell array
     nd_idxs_cell = cell(1,order);
@@ -61,24 +76,17 @@ else
         % also only keep those where the mean (across vecs) is >
         % minimum_value
         % TODO - allow geometric mean in params
-        all_valid_observations = all_valid_observations & mean(vecs,2) > minimum_value;
+        trial_means = mean(Xorig(:,idxs), 2);
+        all_valid_observations = all_valid_observations & trial_means > minimum_value;
         
         % count how many data points survived the not-nan and min-value
         % filters
         counts(i) = sum(all_valid_observations);
         vecs = vecs(all_valid_observations,:);
         
-        % subtract mean to get moment around the center
-        if sub_mean, vecs = vecs - ones(counts(i),1) * means(idxs); end
-        
         % compute order-th moment
         % like a dot product with <order>-many vectors instead of just 2
         nddots(i) = sum(prod(vecs, 2), 1);
-        
-        if norm_variance
-            % normalize by sqrt(var i * var j * var k ...)
-            nddots(i) = nddots(i) / prod(stddevs(idxs));
-        end
     end
     
     indices = all_indices;
