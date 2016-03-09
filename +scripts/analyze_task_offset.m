@@ -237,9 +237,6 @@ plus_pv = hi_pv - mean_pv;
 minus_pv = mean_pv - lo_pv;
 
 %% SCATTER PLOTS - commented out b/c redundant with analyze_scatter_moments
-if nargin < 4
-    figpath = fullfile('figures', params.monkey, sprintf('moment%d', params.moment));
-end
 %%% PLOT I: scatter and correlation when f' aligned with task
 % if params.verbose, fprintf('First plot: f'' task vs CT moment\n'); end
 % 
@@ -265,7 +262,9 @@ end
 % ylabel('choice-triggered diff means')
 % 
 % 
-% savefig(fullfile(figpath, 'scatter_aligned.fig'));
+% if nargin >= 4
+%     savefig(fullfile(figpath, 'scatter_aligned.fig'));
+% end
 % 
 % %% PLOT II: scatter and correlation when f' 45 degrees off task
 % if params.verbose, fprintf('Second plot: f'' ortho vs CT moment\n'); end
@@ -291,7 +290,9 @@ end
 % xlabel('f'' aligned 45 degrees off task')
 % ylabel('choice-triggered diff means')
 % 
-% savefig(fullfile(figpath, 'scatter_offset45.fig'));
+% if nargin >= 4
+%     savefig(fullfile(figpath, 'scatter_offset45.fig'));
+% end
 % 
 %% PLOT III: correlation as a function of distance off task
 if params.verbose, fprintf('Third plot: correlation as fn of offset\n'); end
@@ -302,7 +303,9 @@ title(sprintf('Correlations (f''f'' ~ noise correlation) as a function of task-o
 xlabel('offset from trial alignment');
 ylabel('corr(f''f'',NC)');
 
-savefig(fullfile(figpath, sprintf('[%s][%s]corr_vs_offset_m%d.fig', params.fprime_curve, params.corr_type, params.moment)));
+if nargin >= 4
+    savefig(fullfile(figpath, sprintf('[%s][%s]corr_vs_offset_m%d.fig', params.fprime_curve, params.corr_type, params.moment)));
+end
 
 %% PLOT IV: significance of 3rd plot's correlations as function of distance off task
 if params.verbose, fprintf('Fourth plot: significance\n'); end
@@ -316,7 +319,9 @@ ylabel('significance');
 
 fprintf('correlation significance (bootstrap 95%%) = %f +%f -%f\n', mean_pv(1), plus_pv(1), minus_pv(1));
 
-savefig(fullfile(figpath, sprintf('[%s][%s]significance_vs_offset_m%d.fig', params.fprime_curve, params.corr_type, params.moment)));
+if nargin >= 4
+    savefig(fullfile(figpath, sprintf('[%s][%s]significance_vs_offset_m%d.fig', params.fprime_curve, params.corr_type, params.moment)));
+end
 
 end
 
