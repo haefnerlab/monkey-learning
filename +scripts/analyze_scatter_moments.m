@@ -1,4 +1,4 @@
-function analyze_scatter_moments( params, figpath )
+function [all_fprimes, all_ctdms, fpfp, corrs] = analyze_scatter_moments( params, figpath )
 %ANALYZE_SCATTER_MOMENTS compares statistical moments of f' tuning curves
 % and 'choice-triggered' distributions (when there is no stimulus)
 %
