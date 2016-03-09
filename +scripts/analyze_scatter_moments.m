@@ -67,10 +67,10 @@ disp(sum(valid_entries) / length(valid_entries));
 
 axis square;
 title(sprintf('%s :: 1st-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
-xlabel('f'' / sigma_i');
+xlabel(sprintf('f'' / sigma_i\nf'' defined %s', params.scatter_fprime'));
 ylabel('?_choice r_i / sigma_i');
 if nargin > 1
-    savefig(fullfile(figpath, 'scatter1.fig'));
+    savefig(fullfile(figpath, sprintf('[%s]scatter1.fig', params.scatter_fprime)));
 end
 
 %% compare second moment (noise correlations vs f'f')
@@ -85,7 +85,7 @@ corrs = cell(1,n_pops);
 hold on;
 for p_idx=1:n_pops
     pop = pops_task(p_idx);
-    if params.verbose, fprintf('\tPopulation %d of %d (%d neurons)\n', p_idx, n_pops, length(pop.cellnos)); end;
+    if params.verbose, fprintf('\tPopulation %2d of %2d (%2d neurons, using %2d/%2d pairs)\n', p_idx, n_pops, length(pop.cellnos), length(Good_Pairs(pop,params)), nchoosek(length(pop.cellnos),2)); end;
     
     % compare zero-signal correlations to fp_i fp_j / (sigma_i sigma_j)
     pop_corrs = Util.nancomoment(pop.spikeRates_stim0', 2, true, true, true, params.min_pairs);
@@ -114,10 +114,10 @@ valid_entries = ~isnan(corrs);
 
 axis square;
 title(sprintf('%s :: 2nd-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
-xlabel('fp_i fp_j / sig_i sig_j');
+xlabel(sprintf('f''_i f''_j / sig_i sig_j\nf'' defined %s', params.scatter_fprime));
 ylabel('noise correlations');
 if nargin > 1
-    savefig(fullfile(figpath, 'scatter2.fig'));
+    savefig(fullfile(figpath, sprintf('[%s]scatter2.fig', params.scatter_fprime)));
 end
 
 %% plot colored orientations key

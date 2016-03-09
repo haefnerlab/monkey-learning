@@ -302,7 +302,7 @@ title(sprintf('Correlations (f''f'' ~ noise correlation) as a function of task-o
 xlabel('offset from trial alignment');
 ylabel('corr(f''f'',NC)');
 
-savefig(fullfile(figpath, sprintf('corr_vs_offset_m%d.fig', params.moment)));
+savefig(fullfile(figpath, sprintf('[%s][%s]corr_vs_offset_m%d.fig', params.fprime_curve, params.corr_type, params.moment)));
 
 %% PLOT IV: significance of 3rd plot's correlations as function of distance off task
 if params.verbose, fprintf('Fourth plot: significance\n'); end
@@ -316,7 +316,7 @@ ylabel('significance');
 
 fprintf('correlation significance (bootstrap 95%%) = %f +%f -%f\n', mean_pv(1), plus_pv(1), minus_pv(1));
 
-savefig(fullfile(figpath, sprintf('significance_vs_offset_m%d.fig', params.moment)));
+savefig(fullfile(figpath, sprintf('[%s][%s]significance_vs_offset_m%d.fig', params.fprime_curve, params.corr_type, params.moment)));
 
 end
 

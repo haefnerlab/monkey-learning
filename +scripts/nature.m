@@ -1,4 +1,4 @@
-function nature(m_idx, plots)
+function nature(m_idx, plots, set_scatter_fprime, set_fprime_curve)
 % start by creating directories where figures will be saved
 
 monkeys = {'both', 'lem', 'jbe'};
@@ -35,7 +35,11 @@ params = New_Parameters(...
     'num_offsets', 37, ... % every 2.5 degrees
     'collapse_offsets', false);
 
+if nargin >= 3, params.scatter_fprime = set_scatter_fprime; end
+if nargin >= 4, params.fprime_curve = set_fprime_curve; end
+
 if any(strcmpi('scatter', plots))
+    
     % scatter moments - ANOVA rejection rule
     scripts.analyze_scatter_moments(params, fullfile(savedir, monkey, 'reject anova'));
     % scatter moments - fprime rejection rule
@@ -56,43 +60,48 @@ if any(strcmpi('fprime', plots))
 end
 
 if any(strcmpi('rotated', plots))
+    memo_file = 'analyze_task_offset_moment1.mat';
+    if nargin >= 4, memo_file = sprintf('[%s]%s', set_fprime_curve, memo_file); end
+    
     % rotated task - 1st moment - all orientations - ANOVA rejection rule
     params.exclusion_rule = 'anova';
     params.exclusion_threshold = 0.05;
     params.collapse_offsets = false;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment1.mat'), false, fullfile(savedir, monkey, 'reject anova', 'allrot'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'reject anova', 'allrot'));
     % rotated task - 1st moment - all orientations - fprime rejection rule
     params.exclusion_rule = 'fprime_pvalue';
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment1.mat'), false, fullfile(savedir, monkey, 'reject fprime', 'allrot'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'reject fprime', 'allrot'));
     % rotated task - 1st moment - all orientations - keep all
     params.exclusion_threshold = inf;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment1.mat'), false, fullfile(savedir, monkey, 'keep all', 'allrot'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'keep all', 'allrot'));
     
     close all;
     
     % rotated task - 2nd moment - all orientations - ANOVA rejection rule
+    memo_file = 'analyze_task_offset_moment2.mat';
+    if nargin >= 4, memo_file = sprintf('[%s]%s', set_fprime_curve, memo_file); end
     params.moment = 2;
     params.exclusion_rule = 'anova';
     params.exclusion_threshold = 0.05;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject anova', 'allrot'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'reject anova', 'allrot'));
     % rotated task - 2nd moment - all orientations - fprime rejection rule
     params.exclusion_rule = 'fprime_pvalue';
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject fprime', 'allrot'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'reject fprime', 'allrot'));
     % rotated task - 2nd moment - all orientations - keep all
     params.exclusion_threshold = inf;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'keep all', 'allrot'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'keep all', 'allrot'));
     
     % rotated task - 2nd moment - collapsed orientations - ANOVA rejection rule
     params.collapse_offsets = true;
     params.exclusion_rule = 'anova';
     params.exclusion_threshold = 0.05;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject anova', 'collapsed'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'reject anova', 'collapsed'));
     % rotated task - 2nd moment - collapsed orientations - fprime rejection rule
     params.exclusion_rule = 'fprime_pvalue';
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'reject fprime', 'collapsed'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'reject fprime', 'collapsed'));
     % rotated task - 2nd moment - collapsed orientations - keep all
     params.exclusion_threshold = inf;
-    scripts.analyze_task_offset(params, fullfile('data', monkey, 'analyze_task_offset_moment2.mat'), false, fullfile(savedir, monkey, 'keep all', 'collapsed'));
+    scripts.analyze_task_offset(params, fullfile('data', monkey, memo_file), false, fullfile(savedir, monkey, 'keep all', 'collapsed'));
     
     close all;
 end
