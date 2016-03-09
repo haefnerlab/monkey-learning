@@ -42,7 +42,7 @@ for p_idx=1:n_pops
     choice_triggered_delta_means = (nanmean(pop.spikeRates_choiceA,2)-nanmean(pop.spikeRates_choiceB,2))';
     choice_triggered_delta_means = choice_sign * choice_triggered_delta_means;
     % normalize by standard deviation
-    variances = nanvar(pop.spikeRates_stim0,1,2)';
+    variances = nanvar(pop.(params.which_responses),1,2)';
     choice_triggered_delta_means = choice_triggered_delta_means ./ sqrt(variances);
     fprime = pop.(params.scatter_fprime) ./ sqrt(variances);
     % FILTER for well-tuned neurons and minimum rate
@@ -70,7 +70,7 @@ title(sprintf('%s :: 1st-order prediction :: Correlation = %.4f :: p=%.2e', para
 xlabel(sprintf('f'' / sigma_i\nf'' defined %s', params.scatter_fprime'));
 ylabel('?_choice r_i / sigma_i');
 if nargin > 1
-    savefig(fullfile(figpath, sprintf('[%s]scatter1.fig', params.scatter_fprime)));
+    savefig(fullfile(figpath, sprintf('[%s][%s]scatter1.fig', params.scatter_fprime, params.which_responses)));
 end
 
 %% compare second moment (noise correlations vs f'f')
@@ -88,9 +88,9 @@ for p_idx=1:n_pops
     if params.verbose, fprintf('\tPopulation %2d of %2d (%2d neurons, using %2d/%2d pairs)\n', p_idx, n_pops, length(pop.cellnos), length(Good_Pairs(pop,params)), nchoosek(length(pop.cellnos),2)); end;
     
     % compare zero-signal correlations to fp_i fp_j / (sigma_i sigma_j)
-    pop_corrs = Util.nancomoment(pop.spikeRates_stim0', 2, true, true, true, params.min_pairs);
+    pop_corrs = Util.nancomoment(pop.(params.which_responses)', 2, true, true, true, params.min_pairs);
     
-    variances = nanvar(pop.spikeRates_stim0,1,2);
+    variances = nanvar(pop.(params.which_responses),1,2);
     sigma_ij = sqrt(variances * variances');
     pop_fpfp = Util.ndouter(pop.(params.scatter_fprime)', 2) ./ sigma_ij;
     selections = Good_Pairs(pop, params);
@@ -117,7 +117,7 @@ title(sprintf('%s :: 2nd-order prediction :: Correlation = %.4f :: p=%.2e', para
 xlabel(sprintf('f''_i f''_j / sig_i sig_j\nf'' defined %s', params.scatter_fprime));
 ylabel('noise correlations');
 if nargin > 1
-    savefig(fullfile(figpath, sprintf('[%s]scatter2.fig', params.scatter_fprime)));
+    savefig(fullfile(figpath, sprintf('[%s][%s]scatter2.fig', params.scatter_fprime, params.which_responses)));
 end
 
 %% plot colored orientations key
