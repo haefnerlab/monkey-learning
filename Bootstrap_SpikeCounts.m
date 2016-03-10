@@ -15,10 +15,12 @@ for p_idx=1:length(pops_task)
         for choice=[-1,1]
             trials_this_condition = find(pop.condVec == s & pop.realChoice == choice);
             n_trials = length(trials_this_condition);
-            % resample trials at this condition (with replacement)
-            resampled_trials = randi(n_trials, 1, n_trials);
-            pop.spikeCounts(:, trials_this_condition) = ...
-                pop.spikeCounts(:, trials_this_condition(resampled_trials));
+            if n_trials > 0
+                % resample trials at this condition (with replacement)
+                resampled_trials = randi(n_trials, 1, n_trials);
+                pop.spikeCounts(:, trials_this_condition) = ...
+                    pop.spikeCounts(:, trials_this_condition(resampled_trials));
+            end
         end
     end
 end
