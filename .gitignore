@@ -6,3 +6,7 @@ data/lem
 *.m~
 *.fig
 *.svg
+# files from cluster jobs:
+*.out.txt
+*.err.txt
+*.sbatch
