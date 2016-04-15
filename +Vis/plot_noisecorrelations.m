@@ -43,7 +43,7 @@ for p_idx = 1:length(pops_task)
         orientations_1 = orientations_1 - pop.Orientation;
         orientations_2 = orientations_2 - pop.Orientation;
         
-        [im_this_pop_trial, rates_this_pop_trial] = Vis.image_pref_orientation(orientations_1, orientations_2, correlations, 180, params.discsize);
+        [im_this_pop_trial, rates_this_pop_trial] = Vis.image_pref_orientation(orientations_1, orientations_2, correlations, 'radius', params.discsize, 'method', 'smooth');
         countable = rates_this_pop_trial > 0;
         new_im_this_pop = im_this_pop;
         new_im_this_pop(countable) = im_this_pop(countable) + im_this_pop_trial(countable) .* rates_this_pop_trial(countable);
