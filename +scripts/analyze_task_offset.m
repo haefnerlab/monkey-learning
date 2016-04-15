@@ -115,7 +115,7 @@ if need_computation
             fprime_moment_each_offset = zeros(length(pop.cellnos)^params.moment, params.num_offsets);
             for o_idx=1:params.num_offsets
                 
-                if params.verbose, fprintf('\t\t%d/%d\n', o_idx, params.num_offsets); end
+                if params.verbose, fprintf('\t\t[OR] %d/%d\n', o_idx, params.num_offsets); end
                 offset = offsets(o_idx);
                 
                 fprime_at_offset = cellfun(@(curve) TuningCurve_fPrime_At(curve, pop.Orientation+offset), pop.(params.fprime_curve));
@@ -190,12 +190,12 @@ all_correlations = cell(params.bootstrap, 1);
 all_pvalues = cell(params.bootstrap, 1);
 
 parfor boot=1:params.bootstrap
-    if params.verbose && mod(boot,10)==0, fprintf('\tboot %d/%d\n', boot, params.bootstrap); end
+    if params.verbose && mod(boot,10)==0, fprintf('\t[CORR] boot %d/%d\n', boot, params.bootstrap); end
     all_correlations{boot} = zeros(1, n_roffsets);
     boot_0stim = all_0stim{boot}; % (n_momentdata x 1) array
     boot_fprimes = all_fprimes{boot}; % (n_momentdata x n_offsets) matrix
     for o_idx=1:n_roffsets
-        if params.verbose, fprintf('\t\t%d/%d\n', o_idx, n_roffsets); end
+        if params.verbose, fprintf('\t\t[CORR:OR] %d/%d\n', o_idx, n_roffsets); end
         
         % collapse together rotationally symmetric offsets
         collapse_indices = sym_offset(offsets)==rot_sym_offsets(o_idx);
