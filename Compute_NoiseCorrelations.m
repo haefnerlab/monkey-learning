@@ -1,4 +1,9 @@
-function [image_total, rates_total] = plot_noisecorrelations(pops_task, params, plot, stim_conditions)
+function [image_total, counts_total] = Compute_NoiseCorrelations(pops_task, params, plot, stim_conditions)
+%COMPUTE_NOISECORRELATIONS compute 'smoothed' correlation matrix of given
+%population data according to configuration in params. Creates a figure if
+%'plot' is true. Uses fields in pops_task specified in the cell array
+%stim_conditions
+
 
 if nargin < 3, plot = true; end
 if nargin < 4, stim_conditions = {'spikeRates_stim0', 'spikeRates_stim0A', 'spikeRates_stim0B'}; end
@@ -8,13 +13,13 @@ if nargin < 4, stim_conditions = {'spikeRates_stim0', 'spikeRates_stim0A', 'spik
 if plot, figure(); end
 
 image_total = zeros(180);
-rates_total = zeros(180);
+counts_total = zeros(180);
 
 for p_idx = 1:length(pops_task)
     pop = pops_task(p_idx);
     n_neurons = length(pop.cellnos);
     im_this_pop = zeros(180);
-    rates_this_pop = zeros(180);
+    counts_this_pop = zeros(180);
     
     for stim_idx = 1:length(stim_conditions)
         [noise_correlations,~,indices] = Util.nancomoment(pop.(stim_conditions{stim_idx})', 2, false, true, params.min_pairs, params.min_rates);
@@ -43,29 +48,29 @@ for p_idx = 1:length(pops_task)
         orientations_1 = orientations_1 - pop.Orientation;
         orientations_2 = orientations_2 - pop.Orientation;
         
-        [im_this_pop_trial, rates_this_pop_trial] = Vis.image_pref_orientation(orientations_1, orientations_2, correlations, 'radius', params.discsize, 'method', 'smooth');
-        countable = rates_this_pop_trial > 0;
+        [im_this_pop_trial, counts_this_pop_trial] = Vis.image_pref_orientation(orientations_1, orientations_2, correlations, 'radius', params.discsize, 'method', 'smooth');
+        countable = counts_this_pop_trial > 0;
         new_im_this_pop = im_this_pop;
-        new_im_this_pop(countable) = im_this_pop(countable) + im_this_pop_trial(countable) .* rates_this_pop_trial(countable);
+        new_im_this_pop(countable) = im_this_pop(countable) + im_this_pop_trial(countable) .* counts_this_pop_trial(countable);
         im_this_pop = new_im_this_pop;
-        rates_this_pop = rates_this_pop + rates_this_pop_trial;
+        counts_this_pop = counts_this_pop + counts_this_pop_trial;
     end
     
-    rates_total = rates_total + rates_this_pop;
-    countable = rates_this_pop > 0;
+    counts_total = counts_total + counts_this_pop;
+    countable = counts_this_pop > 0;
     image_total(countable) = image_total(countable) + im_this_pop(countable);
     
     if plot
         Util.subplotsquare(length(pops_task), p_idx);
-        Util.imagescnan(im_this_pop ./ rates_this_pop, [1 .6 .8]); colorbar;
+        Util.imagescnan(im_this_pop ./ counts_this_pop, [1 .6 .8]); colorbar;
         title(sprintf('Noise correlations pop %d', p_idx));
     end
 end
 
 %% plot totals
 
-image_total(rates_total == 0) = NaN;
-image_total = image_total ./ rates_total;
+image_total(counts_total == 0) = NaN;
+image_total = image_total ./ counts_total;
 
 if plot
     figure();
