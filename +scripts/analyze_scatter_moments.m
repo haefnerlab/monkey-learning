@@ -88,7 +88,22 @@ for p_idx=1:n_pops
     if params.verbose, fprintf('\tPopulation %2d of %2d (%2d neurons, using %2d/%2d pairs)\n', p_idx, n_pops, length(pop.cellnos), length(Good_Pairs(pop,params)), nchoosek(length(pop.cellnos),2)); end;
     
     % compare zero-signal correlations to fp_i fp_j / (sigma_i sigma_j)
-    pop_corrs = Util.nancomoment(pop.(params.which_responses)', 2, true, true, true, params.min_pairs);
+%     pop_corrs = Util.nancomoment(pop.(params.which_responses)', 2, true, true, true, params.min_pairs);
+    
+    % resample correlations from smoothed matrix
+    [C, norm] = Compute_NoiseCorrelations(pop, params, false, {params.which_responses});
+%     [C, ~] = Vis.Collapse_Symmetry(C, norm, 1, 'target_swap', 'plus_minus_swap');
+    pop_corrs = zeros(length(pop.cellnos));
+    for i=1:length(pop.cellnos)
+        for j=i:length(pop.cellnos)
+            pref_i = pop.(params.nc_tuning_method)(i);
+            pref_j = pop.(params.nc_tuning_method)(j);
+            % preferred orientations are in [0,180)
+            % and interp2 expects indices in [1,180], hence pref_i+1
+            pop_corrs(i,j) = interp2(C, pref_i+1, pref_j+1);
+            pop_corrs(j,i) = pop_corrs(i,j);
+        end
+    end
     
     variances = nanvar(pop.(params.which_responses),1,2);
     sigma_ij = sqrt(variances * variances');
