@@ -4,7 +4,7 @@ function [all_correlations, all_pvalues, rot_sym_offsets] = analyze_task_offset(
 % f' for different notions of f' to see if the statistical moments of 
 % choice-triggered responses are aligned to the task
 %
-% params.params.fprime_curve may be 'tuning_vm_curves' to use von Mises fits or
+% params.fprime_curve may be 'tuning_vm_curves' to use von Mises fits or
 %   'tuning_pw_curves' to use piecewise-linear interpolations from the
 %   fixation task as the tuning curve
 %

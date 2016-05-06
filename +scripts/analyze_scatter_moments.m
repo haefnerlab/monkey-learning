@@ -4,8 +4,8 @@ function [all_fprimes, all_ctdms, fpfp, corrs] = analyze_scatter_moments( params
 %
 % Comparisons are done for 1st- and 2nd-order predictions
 %
-% params.params.min_pairs: min # n-tuples of not-NaN trials for the moment to be considered valid 
-% params.params.min_rates: min avg spike rate (all trials) for a neuron to be included
+% params.min_pairs: min # n-tuples of not-NaN trials for the moment to be considered valid 
+% params.min_rates: min avg spike rate (all trials) for a neuron to be included
 
 %% Load and preprocess
 [pops_task, pops_fix, full_pops_task, full_pops_fix] = Load_Preprocess(params);
