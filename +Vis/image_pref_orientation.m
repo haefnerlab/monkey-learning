@@ -19,12 +19,18 @@ function [image, norm] = image_pref_orientation(orient_x, orient_y, xydata, vara
 %   gaussian kernel
 %	
 %   I = IMAGE_PREF_ORIENTATION(..., 'diagonal', d) a boolean flag, defaults
-%   to false. Determins whether to ignore data where orient_x == orient_y
+%   to false. Determines whether to ignore data where orient_x == orient_y
+%
+%   I = IMAGE_PREF_ORIENTATION(..., 'symmetric', s) a boolean flag,
+%   defaults to true. When true, adds both [x, y] and [y, x] for data not
+%   on the diagonal. Use this for correlation matrices e.g. when the
+%   calling function only has one point per pair.
 
 imsize = 180;
 method = 'disc';
 radius = 10;
 diagonal = false;
+symmetric = true;
 
 nvararg = length(varargin);
 for i=1:2:nvararg
@@ -32,6 +38,7 @@ for i=1:2:nvararg
     elseif strcmpi(varargin{i}, 'method'), method = varargin{i+1};
     elseif strcmpi(varargin{i}, 'radius'), radius = varargin{i+1};
     elseif strcmpi(varargin{i}, 'diagonal'), diagonal = varargin{i+1};
+    elseif strcmpi(varargin{i}, 'symmetric'), symmetric = varargin{i+1};
     end
 end
 
@@ -63,6 +70,12 @@ for i = 1:ndata
             kernel = kernel_centered_at(orient_x(i), orient_y(i));
             image = image + xydata(i) * kernel;
             norm = norm + kernel; % count # values that contribute to each pixel
+            if symmetric && (orient_x(i) ~= orient_y(i))
+                % add (y, x) data in addition to (x, y) data
+                kernel = kernel_centered_at(orient_y(i), orient_x(i));
+                image = image + xydata(i) * kernel;
+                norm = norm + kernel; % count # values that contribute to each pixel
+            end
         end
     end
 end
