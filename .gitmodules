@@ -1,3 +1,6 @@
 [submodule "Sampling Model"]
 	path = Sampling Model
 	url = https://github.com/haefnerlab/sampling_decision
+[submodule "tools"]
+	path = tools
+	url = git@bitbucket.org:haefnerlab/tools.git
