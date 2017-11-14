@@ -33,6 +33,11 @@ pops_task = Compute_fPrime_fixation_means( pops_task, pops_fix, params.recompute
 [full_pops_task, full_pops_fix] = Split_Conditions( full_pops_task, full_pops_fix );
 full_pops_task = Compute_fPrime_stimulus_means( full_pops_task, params.recompute_tuning );
 
+% Flag each session as having 'normal' or 'flipped' choice signs.
+for i=1:length(pops_task)
+    pops_task(i).choice_sign = sign(pops_task(i).condVec' * pops_task(i).correctChoice);
+end
+
 save(savefile, 'pops_task', 'pops_fix', 'full_pops_task', 'full_pops_fix');
 
 end

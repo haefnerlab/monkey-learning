@@ -50,6 +50,12 @@ pop.spikeRates_stim0B = pop.spikeCounts(:, stim0B) / (pop.trialDur/1000 - 0.05);
 pop.spikeRates_choiceA = pop.spikeCounts(:, choiceA) / (pop.trialDur/1000 - 0.05);
 pop.spikeRates_choiceB = pop.spikeCounts(:, choiceB) / (pop.trialDur/1000 - 0.05);
 
+pop.choice_stimA = pop.realChoice(stimA);
+pop.choice_stimB = pop.realChoice(stimB);
+pop.choice_stim0 = pop.realChoice(stim0);
+pop.choice_stim0A = pop.realChoice(stim0A);
+pop.choice_stim0B = pop.realChoice(stim0B);
+
 end
 
 function [ pop ] = Process_Fixation_Conditions( pop )
