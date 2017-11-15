@@ -66,7 +66,7 @@ assert(length(xydata) == ndata);
 
 for i = 1:ndata
     if diagonal || (orient_x(i) ~= orient_y(i))
-        if ~isnan(xydata(i))
+        if ~isnan(xydata(i)) && ~isnan(orient_x(i)) && ~isnan(orient_y(i))
             kernel = kernel_centered_at(orient_x(i), orient_y(i));
             image = image + xydata(i) * kernel;
             norm = norm + kernel; % count # values that contribute to each pixel
