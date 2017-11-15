@@ -38,6 +38,10 @@ for i=1:length(pops_task)
     pops_task(i).choice_sign = sign(pops_task(i).condVec' * pops_task(i).correctChoice);
 end
 
+for i=1:length(full_pops_task)
+    full_pops_task(i).choice_sign = sign(full_pops_task(i).condVec' * full_pops_task(i).correctChoice);
+end
+
 save(savefile, 'pops_task', 'pops_fix', 'full_pops_task', 'full_pops_fix');
 
 end
