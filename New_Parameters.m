@@ -10,7 +10,10 @@ parameters = struct(...
     'verbose', true, ...
     'which_responses', 'spikeRates_stim0', ... % on which field of the population response to to the 2nd/higher-order tests (see Split_Conditions)
     'fprime_curve', 'tuning_vm_curves', ... % or 'tuning_pw_curves'
+    'tuning_method', 'tuning_vm', ... % or 'tuning'
     'fprime_method', 'fprime_stimulus_mean', ... % or 'fprime_bestfit' or 'fprime_fixation_means'
+    'choice_method', 'CTA', ... % or 'fprime_bestfit' or 'fprime_fixation_means'
+    'correlation_method', 'sample', ... % or 'fit'
     'min_pairs', 25, ... % minimum # shared trials between neurons, otherwise we throw out their correlations
     'min_rates', 7, ... % minimum average spike rate of a set of neurons for their moment to be calculated
     'moment', 2, ...

@@ -42,13 +42,13 @@ pop.spikeCounts_choiceB = pop.spikeCounts(:, choiceB);
 
 % counts start after 50ms in and trialDur measured in ms
 pop.spikeRates = pop.spikeCounts / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_stimA = pop.spikeCounts(:, stimA) / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_stimB = pop.spikeCounts(:, stimB) / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_stim0 = pop.spikeCounts(:, stim0) / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_stim0A = pop.spikeCounts(:, stim0A) / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_stim0B = pop.spikeCounts(:, stim0B) / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_choiceA = pop.spikeCounts(:, choiceA) / (pop.trialDur/1000 - 0.05);
-pop.spikeRates_choiceB = pop.spikeCounts(:, choiceB) / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_stimA = pop.spikeCounts_stimA / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_stimB = pop.spikeCounts_stimB / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_stim0 = pop.spikeCounts_stim0 / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_stim0A = pop.spikeCounts_stim0A / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_stim0B = pop.spikeCounts_stim0B / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_choiceA = pop.spikeCounts_choiceA / (pop.trialDur/1000 - 0.05);
+pop.spikeRates_choiceB = pop.spikeCounts_choiceB / (pop.trialDur/1000 - 0.05);
 
 pop.choice_stimA = pop.realChoice(stimA);
 pop.choice_stimB = pop.realChoice(stimB);
