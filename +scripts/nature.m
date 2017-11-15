@@ -1,4 +1,4 @@
-function nature(m_idx, plots, set_scatter_fprime, set_fprime_curve)
+function nature(m_idx, plots, set_fprime_method, set_fprime_curve)
 % start by creating directories where figures will be saved
 
 monkeys = {'both', 'lem', 'jbe'};
@@ -35,7 +35,7 @@ params = New_Parameters(...
     'num_offsets', 37, ... % every 2.5 degrees
     'collapse_offsets', false);
 
-if nargin >= 3, params.scatter_fprime = set_scatter_fprime; end
+if nargin >= 3, params.fprime_method = set_fprime_method; end
 if nargin >= 4, params.fprime_curve = set_fprime_curve; end
 
 if any(strcmpi('scatter', plots))

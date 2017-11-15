@@ -44,7 +44,7 @@ for p_idx=1:n_pops
     % normalize by standard deviation
     variances = nanvar(pop.(params.which_responses),1,2)';
     choice_triggered_delta_means = choice_triggered_delta_means ./ sqrt(variances);
-    fprime = pop.(params.scatter_fprime) ./ sqrt(variances);
+    fprime = pop.(params.fprime_method) ./ sqrt(variances);
     % FILTER for well-tuned neurons and minimum rate
     selections = Good_Pairs(pop, params);
     fprime = fprime(selections);
@@ -67,10 +67,10 @@ disp(sum(valid_entries) / length(valid_entries));
 
 axis square;
 title(sprintf('%s :: 1st-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
-xlabel(sprintf('f'' / sigma_i\nf'' defined %s', params.scatter_fprime'));
+xlabel(sprintf('f'' / sigma_i\nf'' defined %s', params.fprime_method'));
 ylabel('?_choice r_i / sigma_i');
 if nargin > 1
-    savefig(fullfile(figpath, sprintf('[%s][%s]scatter1.fig', params.scatter_fprime, params.which_responses)));
+    savefig(fullfile(figpath, sprintf('[%s][%s]scatter1.fig', params.fprime_method, params.which_responses)));
 end
 
 %% compare second moment (noise correlations vs f'f')
@@ -92,7 +92,7 @@ for p_idx=1:n_pops
     
     variances = nanvar(pop.(params.which_responses),1,2);
     sigma_ij = sqrt(variances * variances');
-    pop_fpfp = Util.ndouter(pop.(params.scatter_fprime)', 2) ./ sigma_ij;
+    pop_fpfp = Util.ndouter(pop.(params.fprime_method)', 2) ./ sigma_ij;
     selections = Good_Pairs(pop, params);
     % flatten to 1d array of pairwise stats
     pop_corrs = pop_corrs(selections);
@@ -114,10 +114,10 @@ valid_entries = ~isnan(corrs);
 
 axis square;
 title(sprintf('%s :: 2nd-order prediction :: Correlation = %.4f :: p=%.2e', params.monkey, R(2), P(2)));
-xlabel(sprintf('f''_i f''_j / sig_i sig_j\nf'' defined %s', params.scatter_fprime));
+xlabel(sprintf('f''_i f''_j / sig_i sig_j\nf'' defined %s', params.fprime_method));
 ylabel('noise correlations');
 if nargin > 1
-    savefig(fullfile(figpath, sprintf('[%s][%s]scatter2.fig', params.scatter_fprime, params.which_responses)));
+    savefig(fullfile(figpath, sprintf('[%s][%s]scatter2.fig', params.fprime_method, params.which_responses)));
 end
 
 %% plot colored orientations key
